@@ -16,3 +16,13 @@
 2025-11-12T21:05:00Z | AI | Reworked itinerary Step 1: dynamic day rows with route & accommodation datalists; Step 2 replaced with a review page that computes totals from DB; updated server to accept arrays and compute using pax; added minimal JS to add rows.
 2025-11-12T21:12:00Z | AI | Removed layout reference to /js/ui.js and deleted the file; kept page-specific scripts inline at the bottom of their EJS files (e.g., Step 1 add-row script).
 2025-11-12T21:18:00Z | AI | Added a Remove button per itinerary day row on Step 1; supports removing any row; prevents removing the last row by clearing it instead.
+2025-11-12T21:22:00Z | AI | Expanded sidebar: added Admin sub-links (Routes, Accommodations, Users) with proper active state using res.locals.path; Admin top link now only active at /admin.
+2025-11-12T21:26:00Z | AI | Hid sidebar on the login page: layout renders a clean, centered login interface when page='auth-login'.
+2025-11-12T21:32:00Z | AI | Improved login look: full-viewport auth shell with subtle background, wider card (lg=6), refined copy; added `auth-shell` styles to theme and documented in AGENTS.md.
+2025-11-12T21:38:00Z | AI | Fixed narrow login width by replacing grid with a centered auth-card (max-width 520px), adjusted padding and branding; no inline styles used.
+2025-11-12T21:44:00Z | AI | Added HTMX loading indicator to login form: spinner shows during request via hx-indicator; added CSS helpers to show/hide indicators.
+2025-11-12T21:50:00Z | AI | Login UX: Disable submit button during request and re-enable on response; added inline HTMX event handlers; expanded indicator CSS to support element-level hx-indicator toggling.
+2025-11-12T22:00:00Z | AI | Cleaned Edit Route view (removed obsolete fields); updated seed to purge routes/accommodations and repopulate with fresh examples; aligned route names with accommodations; added realistic prices and pax-based park fees.
+2025-11-12T22:08:00Z | AI | Removed Route.accomodation from schema and all admin flows; updated admin routes list and edit forms; validated accommodation route_name must match existing Route; updated seeds to stop embedding accommodation in Route.
+2025-11-12T22:14:00Z | AI | Admin Routes layout: stacked Add Route and Routes List vertically (single column) instead of side-by-side.
+2025-11-12T22:18:00Z | AI | Reverted Admin Routes to two-column layout (Add: lg-4, List: lg-8) and widened Fees column with w-25 to prevent it being too thin.

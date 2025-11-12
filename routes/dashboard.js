@@ -1,7 +1,7 @@
 const express = require('express');
 const { ensureAuth } = require('../middlewares/authCheck');
 const RouteModel = require('../models/Route');
-const Accomodation = require('../models/Accomodation');
+const Accommodation = require('../models/Accommodation');
 const Itinerary = require('../models/Itinerary');
 const { computeItineraryTotals } = require('../utils/calc');
 
@@ -44,9 +44,9 @@ router.get('/itineraries', ensureAuth, async (req, res, next) => {
 // New itinerary - step 1: choose routes and order
 router.get('/itineraries/new', ensureAuth, async (req, res, next) => {
   try {
-    const [routes, accomodations] = await Promise.all([
+    const [routes, accommodations] = await Promise.all([
       RouteModel.find({}).sort({ day: 1, name: 1 }).select('name day origin destination').lean(),
-      Accomodation.find({}).sort({ accomodation_name: 1 }).select('accomodation_name price route_name').lean(),
+      Accommodation.find({}).sort({ accomodation_name: 1 }).select('accomodation_name price route_name').lean(),
     ]);
     res.render('itineraries/new-step1', {
       title: 'New Itinerary • Step 1',
@@ -54,7 +54,7 @@ router.get('/itineraries/new', ensureAuth, async (req, res, next) => {
       keywords: 'itinerary, new, routes, accommodation',
       page: 'itineraries',
       routes,
-      accomodations,
+      accomodations: accommodations,
     });
   } catch (err) { next(err); }
 });
@@ -84,7 +84,7 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
     const accNames = [...new Set(rows.map(r => r.accomodationName).filter(Boolean))];
     const [routesAll, accAll] = await Promise.all([
       RouteModel.find({ name: { $in: routeNames } }).lean(),
-      Accomodation.find({ accomodation_name: { $in: accNames } }).lean(),
+      Accommodation.find({ accomodation_name: { $in: accNames } }).lean(),
     ]);
     const routeByName = new Map(routesAll.map(r => [r.name, r]));
     const accByName = new Map(accAll.map(a => [a.accomodation_name, a]));
@@ -108,8 +108,8 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
     const daysForCalc = daysNorm.map(x => ({
       routeId: x.routeDoc._id,
       accomodation: {
-        name: x.accomodationDoc ? x.accomodationDoc.accomodation_name : (x.routeDoc.accomodation?.name || 'N/A'),
-        price: x.accomodationDoc ? Number(x.accomodationDoc.price || 0) : Number(x.routeDoc.accomodation?.price || 0),
+        name: x.accomodationDoc ? x.accomodationDoc.accomodation_name : 'N/A',
+        price: x.accomodationDoc ? Number(x.accomodationDoc.price || 0) : 0,
       }
     }));
     const pax = { adults: Number(adults || 0), children: Number(children || 0) };
@@ -127,8 +127,8 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
         index: idx + 1,
         day: x.day,
         route: x.routeDoc,
-        accomodationName: x.accomodationDoc ? x.accomodationDoc.accomodation_name : (x.routeDoc.accomodation?.name || 'N/A'),
-        accomodationPrice: x.accomodationDoc ? Number(x.accomodationDoc.price || 0) : Number(x.routeDoc.accomodation?.price || 0),
+        accomodationName: x.accomodationDoc ? x.accomodationDoc.accomodation_name : 'N/A',
+        accomodationPrice: x.accomodationDoc ? Number(x.accomodationDoc.price || 0) : 0,
       })),
       totals: result.totals,
     });

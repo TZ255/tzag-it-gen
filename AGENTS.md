@@ -39,7 +39,7 @@ tz-ag-sys/
 │   ├── db.js             # Mongoose connection
 │   └── passport.js       # Local strategy (plain password for prototype)
 │
-├── /models               # Mongoose schemas (User, Route, Accomodation, Booking)
+├── /models               # Mongoose schemas (User, Route, Accommodation, Booking)
 ├── /routes               # index, auth, admin, api (legacy endpoints may exist)
 ├── /views                # layouts, partials, auth, admin, fragments, errors
 ├── /public               # css/theme.css, js/*, assets
@@ -73,14 +73,13 @@ Route
   - description: String, required
   - day: Number (>=1)
   - origin: String, destination: String (optional)
-  - accomodation: { name: String, price: Number }
   - vehicle_fee: Number
   - park_fee_adult: Number
   - park_fee_child: Number
   - transit_fee: Number
   - createdAt, updatedAt: Date
 
-Accomodation
+Accommodation
 - fields:
   - accomodation_name: String, required
   - route_name: String, required
@@ -116,6 +115,7 @@ Auth via HTMX
 - Login form submits with `hx-post` to `/auth/login` and targets `#auth-messages`.
 - On success, respond with `HX-Redirect: /dashboard`.
 - On validation errors, return `views/fragments/auth-message.ejs` with `kind` and `messages`.
+ - Show a Bootstrap spinner during login with an HTMX indicator: set `hx-indicator="#login-spinner"` on the form and include a `<span id="login-spinner" class="htmx-indicator spinner-border spinner-border-sm">` element inside the submit button.
 
 ## Middlewares
 - `authCheck.ensureAuth(req, res, next)` → if not logged in, redirect `/auth/login` with flash.
@@ -196,6 +196,7 @@ Components (standardize usage)
 Tanzania Adv. Group UI helpers (prefix `sb-`)
 - `sb-card`: elevated card with larger radius and shadow for auth/hero sections.
 - `sb-auth`: section wrapper with minimum viewport height for auth pages.
+- `auth-shell`: full-viewport wrapper used on login to center the card and apply a subtle background.
 - `sb-hero-icon`: circular icon chip (`primary|success|warning` variants) for page headers.
 - `sb-input-group`: styled input group that blends icon and input seamlessly.
 - `sb-navbar-cta`: align nav CTA buttons nicely on large screens.
@@ -295,7 +296,7 @@ Admin Acceptance
 
 ## Seeding
 - Command: `npm run seed` (runs `node scripts/seed.js`).
-- Seeds sample Route and Accomodation documents suitable for local demo.
+- Seeds sample Route and Accommodation documents suitable for local demo.
 - Safe to run multiple times (uses upsert-like guards by name).
 
 

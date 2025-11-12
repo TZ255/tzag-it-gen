@@ -1,12 +1,12 @@
 <section class="py-4">
   <div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="h5 mb-0">Admin • Accomodations</h1>
+    <h1 class="h5 mb-0">Admin • Accommodations</h1>
   </div>
   <div class="row g-3">
     <div class="col-lg-5">
       <div class="card sb-card"><div class="card-body">
         <h2 class="h6 mb-3">Add Accommodation</h2>
-        <form action="/admin/accomodations" method="post" class="sb-form">
+        <form action="/admin/accommodations" method="post" class="sb-form">
           <div class="mb-2"><label class="form-label" for="accomodation_name">Accommodation Name</label><input id="accomodation_name" name="accomodation_name" class="form-control" required></div>
           <div class="mb-2"><label class="form-label" for="route_name">Route Name</label>
             <input id="route_name" name="route_name" class="form-control" list="route_name_list" placeholder="Start typing to search…" required>
@@ -35,10 +35,10 @@
           <table class="table table-hover align-middle">
             <thead><tr><th>Name</th><th>Route</th><th>Price</th><th>Conserved</th><th>Concession Fee</th><th>Actions</th></tr></thead>
             <tbody>
-              <% if (!accomodations || accomodations.length === 0) { %>
+              <% if (!accommodations || accommodations.length === 0) { %>
                 <tr><td colspan="6" class="text-center text-muted">No accommodations yet.</td></tr>
               <% } else { %>
-                <% accomodations.forEach(function(a){ %>
+                <% accommodations.forEach(function(a){ %>
                   <tr>
                     <td><%= a.accomodation_name %></td>
                     <td><%= a.route_name %></td>
@@ -46,8 +46,8 @@
                     <td><span class="badge bg-<%= a.isConserved ? 'success' : 'secondary' %>"><%= a.isConserved ? 'yes' : 'no' %></span></td>
                     <td>USD <%= Number(a.concession_fee || 0).toLocaleString('en-US') %></td>
                     <td class="text-nowrap">
-                      <a class="btn btn-sm btn-outline-primary" href="/admin/accomodations/<%= a._id %>/edit">Edit</a>
-                      <form action="/admin/accomodations/<%= a._id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Delete this accommodation?');">
+                      <a class="btn btn-sm btn-outline-primary" href="/admin/accommodations/<%= a._id %>/edit">Edit</a>
+                      <form action="/admin/accommodations/<%= a._id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Delete this accommodation?');">
                         <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
                       </form>
                     </td>

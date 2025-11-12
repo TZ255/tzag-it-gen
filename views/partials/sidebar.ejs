@@ -15,10 +15,25 @@
         <i class="fa-solid fa-route me-2"></i> Itineraries
       </a>
     </li>
-    <% if (user && user.role === 'admin') { %>
+    <% if (user && ['admin', 'owner'].includes(user.role)) { %>
       <li class="nav-item">
-        <a class="nav-link <%= page==='admin' ? 'active' : '' %>" href="/admin">
+        <a class="nav-link <%= (path === '/admin') ? 'active' : '' %>" href="/admin">
           <i class="fa-solid fa-shield-halved me-2"></i> Admin
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= (path && path.startsWith('/admin/routes')) ? 'active' : '' %>" href="/admin/routes">
+          <i class="fa-solid fa-road me-2"></i> Routes
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= (path && path.startsWith('/admin/accommodations')) ? 'active' : '' %>" href="/admin/accommodations">
+          <i class="fa-solid fa-hotel me-2"></i> Accommodations
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <%= (path && path.startsWith('/admin/users')) ? 'active' : '' %>" href="/admin/users">
+          <i class="fa-solid fa-users me-2"></i> Users
         </a>
       </li>
     <% } %>

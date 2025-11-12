@@ -11,5 +11,5 @@ const accomodationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Accomodation', accomodationSchema);
+module.exports = mongoose.model('Accommodation', accomodationSchema);
 

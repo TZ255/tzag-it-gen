@@ -1,29 +1,44 @@
-<section class="py-5 sb-auth">
-  <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-      <div class="card sb-card">
-        <div class="card-body p-4">
-          <div class="text-center mb-3"><span class="sb-hero-icon sb-hero-primary"><i class="fa-solid fa-right-to-bracket"></i></span></div>
-          <h1 class="h4 text-center mb-3">Login • Tanzania Adv. Itinerary</h1>
-          <p class="text-muted text-center mb-4">Welcome back. Please sign in to continue.</p>
-          <div id="auth-messages" class="mb-3"></div>
-          <form action="/auth/login" method="post" hx-post="/auth/login" hx-target="#auth-messages" hx-swap="innerHTML" class="sb-form">
-            <div class="mb-3 input-group sb-input-group">
-              <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
-              <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
-            </div>
-            <div class="mb-3 input-group sb-input-group">
-              <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
-              <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-            </div>
-            <div class="d-grid">
-              <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-right-to-bracket me-1"></i>
-                Login
-              </button>
-            </div>
-          </form>
+<section class="py-4 sb-auth">
+  <div class="auth-card mx-auto">
+    <div class="card sb-card">
+      <div class="card-body p-4 p-md-5">
+        <div class="text-center mb-3">
+          <div class="mb-2"><span class="sb-hero-icon sb-hero-primary"><i class="fa-solid fa-right-to-bracket"></i></span></div>
+          <div class="auth-brand">Tanzania Adv. Group</div>
         </div>
+        <h1 class="h4 text-center mb-1">Sign in</h1>
+        <p class="text-muted text-center mb-4">Access your itinerary dashboard.</p>
+        <div id="auth-messages" class="mb-3"></div>
+        <form id="login-form" action="/auth/login" method="post" hx-post="/auth/login" hx-target="#auth-messages" hx-swap="innerHTML" hx-indicator="#login-spinner" class="sb-form">
+          <div class="mb-3 input-group sb-input-group">
+            <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
+            <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+          </div>
+          <div class="mb-3 input-group sb-input-group">
+            <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+            <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+          </div>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-right-to-bracket me-1"></i>
+              Login
+              <span id="login-spinner" class="htmx-indicator spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+        <script>
+          (function(){
+            var form = document.getElementById('login-form');
+            if (!form) return;
+            var btn = form.querySelector('button[type="submit"]');
+            var spin = document.getElementById('login-spinner');
+            function disable(){ if(btn){ btn.disabled = true; btn.setAttribute('aria-disabled','true'); } }
+            function enable(){ if(btn){ btn.disabled = false; btn.removeAttribute('aria-disabled'); } }
+            form.addEventListener('htmx:beforeRequest', function(){ disable(); });
+            form.addEventListener('htmx:afterRequest', function(){ enable(); });
+            form.addEventListener('htmx:responseError', function(){ enable(); });
+          })();
+        </script>
       </div>
     </div>
   </div>

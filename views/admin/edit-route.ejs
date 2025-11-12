@@ -21,18 +21,9 @@
             <div class="col"><label class="form-label" for="park_fee_adult">Park Fee Adult (USD)</label><input id="park_fee_adult" name="park_fee_adult" type="number" class="form-control" value="<%= routeItem.park_fee_adult || 0 %>" min="0"></div>
             <div class="col"><label class="form-label" for="park_fee_child">Park Fee Child (USD)</label><input id="park_fee_child" name="park_fee_child" type="number" class="form-control" value="<%= routeItem.park_fee_child || 0 %>" min="0"></div>
           </div>
-          <div class="row g-2 mb-3">
-            <div class="col"><label class="form-label" for="transit_fee">Transit Fee (USD)</label><input id="transit_fee" name="transit_fee" type="number" class="form-control" value="<%= routeItem.transit_fee || 0 %>" min="0"></div>
-            <div class="col">
-              <label class="form-label" for="accomodationName">Accommodation</label>
-              <select id="accomodationName" name="accomodationName" class="form-select" required>
-                <option value="" disabled>Select accommodation…</option>
-                <% (accomodations || []).forEach(function(a){ %>
-                  <option value="<%= a.accomodation_name %>" <%= (routeItem.accomodation && routeItem.accomodation.name===a.accomodation_name)?'selected':'' %>><%= a.accomodation_name %> — USD <%= Number(a.price||0).toLocaleString('en-US') %></option>
-                <% }) %>
-              </select>
-              <div class="form-text">Price will be taken from the selected accommodation.</div>
-            </div>
+          <div class="mb-3">
+            <label class="form-label" for="transit_fee">Transit Fee (USD)</label>
+            <input id="transit_fee" name="transit_fee" type="number" class="form-control" value="<%= routeItem.transit_fee || 0 %>" min="0">
           </div>
           <div class="d-flex justify-content-end gap-2">
             <a class="btn btn-outline-secondary" href="/admin/routes">Cancel</a>
