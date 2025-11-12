@@ -9,12 +9,12 @@
         <form action="/admin/accomodations/<%= accomodation._id %>/edit" method="post" class="sb-form">
           <div class="mb-2"><label class="form-label" for="accomodation_name">Accommodation Name</label><input id="accomodation_name" name="accomodation_name" class="form-control" value="<%= accomodation.accomodation_name %>" required></div>
           <div class="mb-2"><label class="form-label" for="route_name">Route Name</label>
-            <select id="route_name" name="route_name" class="form-select" required>
-              <option value="" disabled>Select route…</option>
+            <input id="route_name" name="route_name" class="form-control" list="route_name_list" placeholder="Start typing to search…" value="<%= accomodation.route_name %>" required>
+            <datalist id="route_name_list">
               <% (routes || []).forEach(function(r){ %>
-                <option value="<%= r.name %>" <%= accomodation.route_name === r.name ? 'selected' : '' %>><%= r.name %></option>
+                <option value="<%= r.name %>"></option>
               <% }) %>
-            </select>
+            </datalist>
           </div>
           <div class="row g-2 mb-2">
             <div class="col"><label class="form-label" for="price">Price (USD)</label><input id="price" name="price" type="number" step="1" min="0" class="form-control" value="<%= accomodation.price %>" required></div>

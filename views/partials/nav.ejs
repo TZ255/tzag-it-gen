@@ -3,7 +3,7 @@
     <a class="navbar-brand fw-semibold" href="/">
       <i class="fa-solid fa-bolt text-primary me-1"></i> Tanzania Adv. Group
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Fungua menyu">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Open menu">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div id="nav" class="collapse navbar-collapse">
@@ -11,20 +11,20 @@
          const isDash = ['dashboard','orders','services','new-order','add-funds'].includes(page);
       %>
       <ul class="navbar-nav ms-auto align-items-lg-center">
-        <li class="nav-item"><a class="nav-link <%= isHome ? 'active' : '' %>" href="/">Nyumbani</a></li>
+        <li class="nav-item"><a class="nav-link <%= isHome ? 'active' : '' %>" href="/">Home</a></li>
         <% if (user) { %>
           <li class="nav-item"><a class="nav-link <%= isDash ? 'active' : '' %>" href="/dashboard">Dashboard</a></li>
           <% if (user.role === 'admin') { %>
             <li class="nav-item"><a class="nav-link" href="/admin">Admin</a></li>
           <% } %>
-          <li class="nav-item ms-lg-3">
-            <form action="/auth/logout" method="post" class="d-inline">
-              <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="fa-solid fa-right-from-bracket me-1"></i> Toka</button>
-            </form>
-          </li>
+            <li class="nav-item ms-lg-3">
+              <form action="/auth/logout" method="post" class="d-inline">
+                <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
+              </form>
+            </li>
         <% } else { %>
           <li class="nav-item ms-lg-3">
-            <a class="btn btn-sm btn-primary" href="/auth/login"><i class="fa-solid fa-right-to-bracket me-1"></i> Ingia</a>
+            <a class="btn btn-sm btn-primary" href="/auth/login"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a>
           </li>
         <% } %>
       </ul>

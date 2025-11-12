@@ -1,0 +1,97 @@
+<section class="py-4">
+  <h1 class="h5 mb-3">New Itinerary • Step 1</h1>
+  <form id="it-new-form" action="/dashboard/itineraries/new/choose-acc" method="post" class="sb-form">
+    <div class="row g-3 mb-3">
+      <div class="col-md-4"><label class="form-label" for="title">Title</label><input id="title" name="title" class="form-control" placeholder="e.g., 7-Day Northern Circuit" required></div>
+      <div class="col-md-3"><label class="form-label" for="startDate">Start Date</label><input id="startDate" name="startDate" type="date" class="form-control"></div>
+      <div class="col-md-2"><label class="form-label" for="adults">Adults</label><input id="adults" name="adults" type="number" class="form-control" value="2" min="0"></div>
+      <div class="col-md-2"><label class="form-label" for="children">Children</label><input id="children" name="children" type="number" class="form-control" value="0" min="0"></div>
+    </div>
+
+    <div class="card sb-card"><div class="card-body">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h2 class="h6 mb-0">Days</h2>
+        <button id="add-day-btn" class="btn btn-sm btn-outline-primary" type="button"><i class="fa-solid fa-plus me-1"></i> Add Day</button>
+      </div>
+      <div id="days-list" class="d-flex flex-column gap-2">
+        <div class="row g-2 align-items-end it-day-row" data-row="1">
+          <div class="col-12 col-md-2">
+            <label class="form-label" for="day-1">Day</label>
+            <input id="day-1" name="day" type="number" class="form-control" value="1" min="1">
+          </div>
+          <div class="col-12 col-md-5">
+            <label class="form-label" for="routeName-1">Route</label>
+            <input id="routeName-1" name="routeName" class="form-control" list="route_name_list" placeholder="Start typing route…" required>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="accomodationName-1">Accommodation</label>
+            <input id="accomodationName-1" name="accomodationName" class="form-control" list="accomodation_name_list" placeholder="Optional — type to search">
+          </div>
+          <div class="col-12 col-md-1 text-md-end">
+            <button type="button" class="btn btn-outline-danger mt-2 mt-md-0" data-remove-row><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+
+    <datalist id="route_name_list">
+      <% (routes || []).forEach(function(r){ %>
+        <option value="<%= r.name %>"></option>
+      <% }) %>
+    </datalist>
+    <datalist id="accomodation_name_list">
+      <% (accomodations || []).forEach(function(a){ %>
+        <option value="<%= a.accomodation_name %>"></option>
+      <% }) %>
+    </datalist>
+
+    <div class="d-flex justify-content-end mt-3"><button class="btn btn-primary" type="submit">Next</button></div>
+  </form>
+</section>
+
+<script>
+    (function(){
+      var addBtn = document.getElementById('add-day-btn');
+      var list = document.getElementById('days-list');
+      function addRow(){
+        var count = list.querySelectorAll('.it-day-row').length + 1;
+        var wrap = document.createElement('div');
+        wrap.className = 'row g-2 align-items-end it-day-row';
+        wrap.setAttribute('data-row', String(count));
+        wrap.innerHTML = '\
+          <div class="col-12 col-md-2">\
+            <label class="form-label" for="day-'+count+'">Day</label>\
+            <input id="day-'+count+'" name="day" type="number" class="form-control" value="'+count+'" min="1">\
+          </div>\
+          <div class="col-12 col-md-5">\
+            <label class="form-label" for="routeName-'+count+'">Route</label>\
+            <input id="routeName-'+count+'" name="routeName" class="form-control" list="route_name_list" placeholder="Start typing route…" required>\
+          </div>\
+          <div class="col-12 col-md-4">\
+            <label class="form-label" for="accomodationName-'+count+'">Accommodation</label>\
+            <input id="accomodationName-'+count+'" name="accomodationName" class="form-control" list="accomodation_name_list" placeholder="Optional — type to search">\
+          </div>\
+          <div class="col-12 col-md-1 text-md-end">\
+            <button type="button" class="btn btn-outline-danger mt-2 mt-md-0" data-remove-row><i class="fa-solid fa-trash"></i></button>\
+          </div>';
+        list.appendChild(wrap);
+      }
+      addBtn && addBtn.addEventListener('click', addRow);
+      list && list.addEventListener('click', function(e){
+        var btn = e.target.closest('[data-remove-row]');
+        if (!btn) return;
+        var rows = list.querySelectorAll('.it-day-row');
+        var row = btn.closest('.it-day-row');
+        if (!row) return;
+        if (rows.length > 1) {
+          row.remove();
+        } else {
+          // Keep at least one row; clear inputs
+          row.querySelector('[name="day"]').value = '1';
+          row.querySelector('[name="routeName"]').value = '';
+          var acc = row.querySelector('[name="accomodationName"]');
+          if (acc) acc.value = '';
+        }
+      });
+    })();
+  </script>

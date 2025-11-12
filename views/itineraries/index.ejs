@@ -1,0 +1,29 @@
+<section class="py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h5 mb-0">Itineraries</h1>
+    <a class="btn btn-sm btn-primary" href="/dashboard/itineraries/new">New Itinerary</a>
+  </div>
+  <div class="card sb-card"><div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead><tr><th>Title</th><th>Start Date</th><th>Total (USD)</th><th>Days</th><th></th></tr></thead>
+        <tbody>
+          <% if (!itineraries || itineraries.length===0) { %>
+            <tr><td colspan="5" class="text-center text-muted">No itineraries yet.</td></tr>
+          <% } else { %>
+            <% itineraries.forEach(function(it){ %>
+              <tr>
+                <td><%= it.title %></td>
+                <td><%= it.startDate ? new Date(it.startDate).toLocaleDateString('en-GB') : '-' %></td>
+                <td>USD <%= Number((it.totals && it.totals.grand) || 0).toLocaleString('en-US') %></td>
+                <td><%= (it.days || []).length %></td>
+                <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="/dashboard/itineraries/<%= it._id %>">View</a></td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div></div>
+</section>
+

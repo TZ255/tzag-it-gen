@@ -6,7 +6,7 @@
          msgs.forEach(function(msg){ %>
            <div class="alert alert-<%= kind === 'error' ? 'danger' : kind %> alert-dismissible fade show" role="alert">
              <%= msg %>
-             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Funga"></button>
+             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
            </div>
     <%   });
        }); %>

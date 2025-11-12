@@ -15,9 +15,8 @@ const routeSchema = new mongoose.Schema(
       required: true
     },
     vehicle_fee: { type: Number, default: 200 },
-    park_fee: { type: Number, default: 0 },
-    adult_number: { type: Number, default: 1 },
-    children_number: { type: Number, default: 0 },
+    park_fee_adult: { type: Number, default: 0 },
+    park_fee_child: { type: Number, default: 0 },
     // Optional fees (route-level only)
     transit_fee: { type: Number, default: 0 },
   },

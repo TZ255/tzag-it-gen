@@ -3,7 +3,7 @@ module.exports.ensureAdmin = function ensureAdmin(req, res, next) {
   const isAdmin = isAuthed && req.user && req.user.role === 'admin';
   if (isAdmin) return next();
 
-  const msg = 'Huna ruhusa ya kufikia ukurasa huu.';
+  const msg = 'You do not have permission to access this page.';
   try { req.flash && req.flash('error', msg); } catch (_) {}
 
   if (req.get && req.get('HX-Request')) {

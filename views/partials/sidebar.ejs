@@ -1,0 +1,39 @@
+<div class="d-flex flex-column gap-2 pt-3">
+  <div class="px-3 pb-2">
+    <a class="navbar-brand fw-semibold text-decoration-none" href="/dashboard">
+      <i class="fa-solid fa-bolt text-primary me-2"></i> Tanzania Adv. Group
+    </a>
+  </div>
+  <ul class="nav nav-pills flex-column">
+    <li class="nav-item">
+      <a class="nav-link <%= page==='dashboard' ? 'active' : '' %>" href="/dashboard">
+        <i class="fa-solid fa-gauge me-2"></i> Dashboard
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link <%= page==='itineraries' ? 'active' : '' %>" href="/dashboard/itineraries">
+        <i class="fa-solid fa-route me-2"></i> Itineraries
+      </a>
+    </li>
+    <% if (user && user.role === 'admin') { %>
+      <li class="nav-item">
+        <a class="nav-link <%= page==='admin' ? 'active' : '' %>" href="/admin">
+          <i class="fa-solid fa-shield-halved me-2"></i> Admin
+        </a>
+      </li>
+    <% } %>
+    <% if (user) { %>
+      <li class="nav-item mt-2 px-3">
+        <form action="/auth/logout" method="post">
+          <button class="btn btn-sm btn-outline-secondary w-100" type="submit">
+            <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
+          </button>
+        </form>
+      </li>
+    <% } else { %>
+      <li class="nav-item mt-2 px-3">
+        <a class="btn btn-sm btn-primary w-100" href="/auth/login"><i class="fa-solid fa-right-to-bracket me-2"></i> Login</a>
+      </li>
+    <% } %>
+  </ul>
+</div>

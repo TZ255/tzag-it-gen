@@ -1,0 +1,62 @@
+<section class="py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h5 mb-0">New Itinerary • Review</h1>
+    <a class="btn btn-sm btn-outline-secondary" href="/dashboard/itineraries/new">Back</a>
+  </div>
+  <div class="mb-2 text-muted small">
+    <span class="me-3">Start: <%= startDateDraft ? new Date(startDateDraft).toLocaleDateString('en-GB') : '-' %></span>
+    <span class="me-3">Pax: Adults <%= pax.adults %>, Children <%= pax.children %></span>
+    <span>Total: USD <%= Number(totals?.grand || 0).toLocaleString('en-US') %></span>
+  </div>
+  <div class="card sb-card"><div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>#</th><th>Day</th><th>Route</th><th>Accommodation</th><th class="text-end">Est. Total (USD)</th></tr></thead>
+        <tbody>
+          <% (days || []).forEach(function(d){ %>
+            <% const r = d.route; const v = Number(r.vehicle_fee||0), t = Number(r.transit_fee||0), a = Number(d.accomodationPrice||0);
+               const pa = Number(r.park_fee_adult||0) * Number(pax?.adults||0);
+               const pc = Number(r.park_fee_child||0) * Number(pax?.children||0);
+               const p = (typeof r.park_fee_adult !== 'undefined' || typeof r.park_fee_child !== 'undefined') ? (pa+pc) : Number(r.park_fee||0);
+               const dayTotal = v+p+t+a; %>
+            <tr>
+              <td><%= d.index %></td>
+              <td><%= d.day %></td>
+              <td>
+                <div class="fw-semibold"><%= r?.name || '-' %></div>
+                <div class="small text-muted"><%= r?.origin || '-' %> → <%= r?.destination || '-' %></div>
+              </td>
+              <td>
+                <div><%= d.accomodationName || 'N/A' %></div>
+                <div class="small text-muted">USD <%= Number(d.accomodationPrice||0).toLocaleString('en-US') %></div>
+              </td>
+              <td class="text-end">USD <%= Number(dayTotal).toLocaleString('en-US') %></td>
+            </tr>
+          <% }) %>
+          <tr class="fw-semibold"><td colspan="4" class="text-end">Accommodation</td><td class="text-end">USD <%= Number(totals?.accomodation||0).toLocaleString('en-US') %></td></tr>
+          <tr class="fw-semibold"><td colspan="4" class="text-end">Vehicle</td><td class="text-end">USD <%= Number(totals?.vehicle||0).toLocaleString('en-US') %></td></tr>
+          <tr class="fw-semibold"><td colspan="4" class="text-end">Park</td><td class="text-end">USD <%= Number(totals?.park||0).toLocaleString('en-US') %></td></tr>
+          <tr class="fw-semibold"><td colspan="4" class="text-end">Transit</td><td class="text-end">USD <%= Number(totals?.transit||0).toLocaleString('en-US') %></td></tr>
+          <tr class="fw-bold"><td colspan="4" class="text-end">Grand Total</td><td class="text-end">USD <%= Number(totals?.grand||0).toLocaleString('en-US') %></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div></div>
+
+  <form action="/dashboard/itineraries" method="post" class="mt-3">
+    <input type="hidden" name="title" value="<%= titleDraft %>">
+    <input type="hidden" name="startDate" value="<%= startDateDraft %>">
+    <input type="hidden" name="adults" value="<%= pax.adults %>">
+    <input type="hidden" name="children" value="<%= pax.children %>">
+    <% (days || []).forEach(function(d){ %>
+      <input type="hidden" name="routeId" value="<%= d.route._id %>">
+      <input type="hidden" name="accomodationName" value="<%= d.accomodationName %>">
+      <input type="hidden" name="accomodationPrice" value="<%= d.accomodationPrice %>">
+    <% }) %>
+    <div class="d-flex justify-content-end gap-2">
+      <a class="btn btn-outline-secondary" href="/dashboard/itineraries/new">Back</a>
+      <button class="btn btn-primary" type="submit">Create Itinerary</button>
+    </div>
+  </form>
+</section>
+

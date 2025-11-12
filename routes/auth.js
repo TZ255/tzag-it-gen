@@ -8,9 +8,9 @@ const router = express.Router();
 // Render: Login
 router.get('/login', ensureGuest, (req, res) => {
   res.render('auth/login', {
-    title: 'Ingia kwenye akaunti',
-    description: 'Ingia ili kufikia dashibodi yako ya Tanzania Adv. Group.',
-    keywords: 'ingia, akaunti, Tanzania Adv. Group',
+    title: 'Sign in to your account',
+    description: 'Log in to access your Tanzania Adv. Group dashboard.',
+    keywords: 'login, account, Tanzania Adv. Group',
     page: 'auth-login',
   });
 });

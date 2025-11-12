@@ -2,7 +2,7 @@
 
 Implementation guide for the Tanzania Adventures Group Itinery Generating System. This replaces legacy SMM panel language and aligns routes, models, UI, and practices to the itinerary use-case.
 
-Last Synced: 2025-11-12T14:19:58Z
+Last Synced: 2025-11-12T20:00:00Z
 
 ## Change Discipline
 - Always update both `AGENTS.md` and `/LOGS/UPDATES.log` for every change.
@@ -74,9 +74,9 @@ Route
   - day: Number (>=1)
   - origin: String, destination: String (optional)
   - accomodation: { name: String, price: Number }
-  - vehicle_fee: Number, park_fee: Number
-  - adult_number: Number
-  - children_number: Number
+  - vehicle_fee: Number
+  - park_fee_adult: Number
+  - park_fee_child: Number
   - transit_fee: Number
   - createdAt, updatedAt: Date
 
@@ -106,7 +106,7 @@ Auth
  
 
 Dashboard (guarded)
-- Basic skeleton (TBD) for itinerary generation and summaries.
+- Focused on itinerary generation and summaries (no funds/services/orders).
 
 HTMX Endpoints (progressive enhancement)
 - Use forms that work without JS; enhance with HTMX where helpful.
@@ -140,21 +140,21 @@ Auth via HTMX
 - Toasts: render flash messages via Bootstrap toast partial `views/partials/toasts.ejs`; errors use red (bg-danger), show on page load.
 - Bootstrap: use grid + cards; avoid custom CSS unless necessary.
 - English copy: short, clear, and consistent; currency is USD.
-- Navbar logic: if `res.locals.user` exists, show `Dashibodi` and `Toka`; otherwise show `Ingia`.
+- Navbar logic (sidebar): if `res.locals.user` exists, show Dashboard and Logout; otherwise show Login.
 
 ## SEO & Metadata
 - Every `res.render(view, data)` MUST include: `title`, `description`, `keywords`, and `page`.
-- `page` values: `home`, `blog`, `blog-post`, `dashboard`, `orders`, `services`, `new-order`, `add-funds`, `auth-login`, `auth-register`, `404`, `500`, etc.
+- `page` values: `dashboard`, `itineraries`, `auth-login`, `404`, `500`.
 - Keep `title` and `description` in clear English. `keywords` as a comma-separated English list.
 - Layout must output `<title>`, `<meta name="description">`, `<meta name="keywords">`. Optionally include Open Graph tags.
 - Root redirects to login, so no landing page metadata is needed.
 
 ## Nav Activeness
-- Determine active navbar links using the `page` variable, not `req.path`.
-- Mapping guideline:
-  - Home: `page === 'home'`
-  - Dashboard: `page in {'dashboard','orders','services','new-order','add-funds'}`
-- Implement with EJS conditionals or a helper; ensure a single `active` class is present at a time.
+- Determine active links using `page`. Sidebar highlights:
+  - Dashboard: `page === 'dashboard'`
+  - Itineraries: `page === 'itineraries'`
+  - Admin: `page === 'admin'`
+  Ensure a single `active` class at a time.
 
 ## HTMX Practices (Critical)
 - Always return HTTP 200 for HTMX responses; avoid 4xx/5xx for validation.
@@ -219,13 +219,13 @@ Dark Mode (optional, future)
 - Do not write component-specific dark CSS; rely on variables.
 
 Content & Copy (English)
-- Buttons/CTAs are verbs: "Weka Oda", "Ongeza Salio", "Hifadhi".
+- Buttons/CTAs are verbs: "Create Itinerary", "Save", "Export".
 - Currency: `USD 1,234` (use non-breaking space between code and number if possible).
 - Dates: `DD/MM/YYYY` for UI; ISO for logs.
 
 Assets & Structure
 - Add `/public/css/theme.css`; include in `layouts/main.ejs` after Bootstrap CSS.
-- Optional `/public/js/ui.js` for small UI hooks (e.g., htmx loading spinners); keep under 100 lines.
+- Page-specific scripts should be kept inline at the bottom of their EJS views (avoid global JS). Remove shared `/public/js/ui.js` unless truly needed.
 
 Design Acceptance
 - No inline styles; zero hard-coded colors in views.
@@ -241,7 +241,7 @@ Design Acceptance
 
 ## Error Handling & 404
 - Unmatched routes → render `errors/404.ejs`.
-- Known failures → flash in English with guidance (e.g., "Tafadhali jaribu tena"), not raw errors.
+- Known failures → flash in English with guidance (e.g., "Please try again later."), not raw errors.
 
 ## Logging & Change Tracking (/LOGS)
 - On each significant change, append to `UPDATES.log` with ISO timestamp, author (or "AI"), and 1–2 line summary.
@@ -264,8 +264,22 @@ Design Acceptance
 2) Auth: login/logout (HTMX), sessions, flashes
 3) Admin basics: routes and accommodations list + create, users list/role
 4) Admin CRUD: add/edit/delete for Routes and Accommodations
-5) Dashboard skeleton for itinerary generation
+5) Dashboard skeleton for itinerary generation (routes added)
 6) Seed data for Routes and Accomodation
+
+## Recent Changes (Prototype Scope)
+- Added `/dashboard` routes to render existing dashboard views with meta.
+- Removed balance-related admin actions and UI; no `User.balance` usage.
+- Added `/public/css/theme.css` implementing design tokens and Bootstrap mapping.
+- Implemented `Itinerary` model and itinerary flow (list, create in 2 steps, show).
+- Added calculator util for totals; created sidebar navigation layout.
+
+## Itinerary Generation — Way Forward
+- Source of truth: `Route` (per-day legs, fees, pax counts) + `Accomodation` (by `route_name`).
+- Compose itineraries by querying ordered `Route` items for a trip plan and aggregating fees: vehicle, park, transit, and accommodation per day using `accomodation.name/price` override where set.
+- Introduce `Itinerary` document referencing ordered `Route` ids and per-day accommodation overrides. Store computed totals and a rendered summary.
+- Builder: pick start date, choose days (routes), select accommodation per day, review costs, then export/print.
+- Keep responses small and fragment-based (dashboard → itinerary builder fragments) while maintaining non-JS form fallbacks.
 
 ## Acceptance Criteria
 - User can only login, logout; sessions persist across refreshes.
@@ -344,7 +358,7 @@ A minimal, modern, and mobile-first visual theme for **Tanzania Adv. Group**.
 - **Disabled States:** Gray tone, reduced opacity  
 - **Link Text:** Blue with no underline (underline only on hover)  
 - **Mobile Buttons:** Full width with clear padding for thumb comfort  
-- Use clear English verbs like *“Nunua Wafuasi”*, *“Ongeza Salio”*, *“Tuma Oda”*
+- Use clear English verbs like "Create Itinerary", "Save", "Print/Export".
 
 ---
 

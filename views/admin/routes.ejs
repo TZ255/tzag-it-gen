@@ -18,18 +18,11 @@
             <div class="col"><label class="form-label" for="vehicle_fee">Vehicle Fee (USD)</label><input id="vehicle_fee" name="vehicle_fee" type="number" class="form-control" value="0" min="0"></div>
           </div>
           <div class="row g-2 mb-2">
-            <div class="col"><label class="form-label" for="park_fee">Park Fee (USD)</label><input id="park_fee" name="park_fee" type="number" class="form-control" value="0" min="0"></div>
-            <div class="col"><label class="form-label" for="transit_fee">Transit Fee (USD)</label><input id="transit_fee" name="transit_fee" type="number" class="form-control" value="0" min="0"></div>
-          </div>
-          
-          
-          <div class="row g-2 mb-2">
-            <div class="col"><label class="form-label" for="adult_number">Adults</label><input id="adult_number" name="adult_number" type="number" class="form-control" value="1" min="0"></div>
-            <div class="col"><label class="form-label" for="children_number">Children</label><input id="children_number" name="children_number" type="number" class="form-control" value="0" min="0"></div>
+            <div class="col"><label class="form-label" for="park_fee_adult">Park Fee Adult (USD)</label><input id="park_fee_adult" name="park_fee_adult" type="number" class="form-control" value="0" min="0"></div>
+            <div class="col"><label class="form-label" for="park_fee_child">Park Fee Child (USD)</label><input id="park_fee_child" name="park_fee_child" type="number" class="form-control" value="0" min="0"></div>
           </div>
           <div class="row g-2 mb-3">
-            <div class="col"><label class="form-label" for="accomodationName">Accommodation Name</label><input id="accomodationName" name="accomodationName" class="form-control"></div>
-            <div class="col"><label class="form-label" for="accomodationPrice">Accommodation Price (USD)</label><input id="accomodationPrice" name="accomodationPrice" type="number" class="form-control" value="0" min="0"></div>
+            <div class="col"><label class="form-label" for="transit_fee">Transit Fee (USD)</label><input id="transit_fee" name="transit_fee" type="number" class="form-control" value="0" min="0"></div>
           </div>
           <div class="d-flex justify-content-end"><button class="btn btn-primary" type="submit">Save</button></div>
         </form>
@@ -40,10 +33,10 @@
         <h2 class="h6 mb-3">Routes List</h2>
         <div class="table-responsive">
           <table class="table table-hover align-middle">
-            <thead><tr><th>Name</th><th>Description</th><th>Day</th><th>Accommodation</th><th>Fees</th><th>Adults/Children</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Name</th><th>Description</th><th>Day</th><th>Accommodation</th><th>Fees</th><th>Actions</th></tr></thead>
             <tbody>
               <% if (!routes || routes.length === 0) { %>
-                <tr><td colspan="7" class="text-center text-muted">No routes yet.</td></tr>
+                <tr><td colspan="6" class="text-center text-muted">No routes yet.</td></tr>
               <% } else { %>
                 <% routes.forEach(function(r){ %>
                   <tr>
@@ -53,10 +46,10 @@
                     <td><%= (r.accomodation && r.accomodation.name) || '-' %> — USD <%= Number((r.accomodation && r.accomodation.price) || 0).toLocaleString('en-US') %></td>
                     <td class="small">
                       <div>Vehicle: USD <%= Number(r.vehicle_fee || 0).toLocaleString('en-US') %></div>
-                      <% if (r.park_fee) { %><div>Park: USD <%= Number(r.park_fee).toLocaleString('en-US') %></div><% } %>
+                      <% if (typeof r.park_fee_adult !== 'undefined') { %><div>Park A: USD <%= Number(r.park_fee_adult).toLocaleString('en-US') %></div><% } %>
+                      <% if (typeof r.park_fee_child !== 'undefined') { %><div>Park C: USD <%= Number(r.park_fee_child).toLocaleString('en-US') %></div><% } %>
                       <% if (r.transit_fee) { %><div>Transit: USD <%= Number(r.transit_fee).toLocaleString('en-US') %></div><% } %>
                     </td>
-                    <td><%= r.adult_number %> / <%= r.children_number %></td>
                     <td class="text-nowrap">
                       <a class="btn btn-sm btn-outline-primary" href="/admin/routes/<%= r._id %>/edit">Edit</a>
                       <form action="/admin/routes/<%= r._id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Delete this route?');">

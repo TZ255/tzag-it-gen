@@ -5,3 +5,14 @@
 2025-11-12T14:55:00Z | AI | Set currency to USD across admin views and seeds; removed TZS conversions and labels; park/concession/transit/vehicle/accommodation amounts are now USD.
 2025-11-12T15:05:00Z | AI | Moved isConserved + concession_fee strictly to Accommodations (removed from Routes schema/UI); fixed Route.accomodation schema shape; added user seed (samia/2025).
 2025-11-12T15:10:00Z | AI | Implemented login button + HTMX+fallback login flow: updated views/auth/login.ejs, improved /auth/login POST to handle both HTMX and non-HTMX correctly.
+2025-11-12T19:30:00Z | AI | Added /dashboard routes and meta; removed balance admin actions and UI; set Total Credited to 0; added /public/css/theme.css per tokens; mounted dashboard router.
+2025-11-12T20:00:00Z | AI | Implemented Itinerary model, calculator, and UI flow (list/new/show) under /dashboard/itineraries; added sidebar layout and updated AGENTS.md/CHANGELOG.
+2025-11-12T20:10:00Z | AI | Removed non-relevant features (add-funds, services, orders, new-order); cleaned dashboard to focus on itineraries; deleted Booking model; updated admin overview to show itineraries count.
+2025-11-12T20:18:00Z | AI | Converted Swahili UI/messages to English: error pages, middleware messages, login meta, alerts/toasts labels, layout lang; updated AGENTS.md examples to English.
+2025-11-12T20:28:00Z | AI | Admin Routes form updated: removed adult/children counts and generic park fee; added park fee (adult/child) fields; accommodation select pulls from DB and price is sourced from catalog. Route schema and seeds updated accordingly; itinerary totals now use pax to compute park fees.
+2025-11-12T20:40:00Z | AI | Fixed sidebar active state for Admin (set page='admin' across admin renders); removed accommodation selection on Add Route; added search filter for route select on Accommodations form; enhanced ui.js to support select filtering.
+2025-11-12T20:46:00Z | AI | Replaced Accommodations route picker with a single searchable input using <datalist> (typeahead) on both add and edit forms; ensured admin pages only highlight Admin in sidebar.
+2025-11-12T20:52:00Z | AI | Removed unused front-end JS (filter and toggle helpers) and blog.js include; fixed routes table colspan; confirmed server expects only posted fields and defaults correctly.
+2025-11-12T21:05:00Z | AI | Reworked itinerary Step 1: dynamic day rows with route & accommodation datalists; Step 2 replaced with a review page that computes totals from DB; updated server to accept arrays and compute using pax; added minimal JS to add rows.
+2025-11-12T21:12:00Z | AI | Removed layout reference to /js/ui.js and deleted the file; kept page-specific scripts inline at the bottom of their EJS files (e.g., Step 1 add-row script).
+2025-11-12T21:18:00Z | AI | Added a Remove button per itinerary day row on Step 1; supports removing any row; prevents removing the last row by clearing it instead.

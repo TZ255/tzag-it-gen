@@ -4,31 +4,28 @@ const { ensureAdmin } = require('../middlewares/adminCheck');
 const User = require('../models/User');
 const RouteModel = require('../models/Route');
 const Accomodation = require('../models/Accomodation');
-const Transaction = require('../models/Booking');
+const Itinerary = require('../models/Itinerary');
 
 const router = express.Router();
 
 // Admin overview (users, routes, accomodations)
 router.get('/', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
-    const [usersCount, routesCount, accomodationsCount, totalCredited] = await Promise.all([
+    const [usersCount, routesCount, accomodationsCount, itinerariesCount] = await Promise.all([
       User.countDocuments({}),
       RouteModel.countDocuments({}),
       Accomodation.countDocuments({}),
-      Transaction.aggregate([
-        { $match: { type: 'credit' } },
-        { $group: { _id: null, total: { $sum: '$amount' } } }
-      ]).then(r => (r[0]?.total || 0))
+      Itinerary.countDocuments({}),
     ]);
     res.render('admin/index', {
       title: 'Admin • Overview',
       description: 'Summary of key system metrics.',
       keywords: 'admin, overview, metrics',
-      page: 'dashboard',
+      page: 'admin',
       usersCount,
       servicesActive: routesCount,
       ordersPending: accomodationsCount,
-      totalCredited,
+      itinerariesCount,
     });
   } catch (err) { next(err); }
 });
@@ -36,35 +33,43 @@ router.get('/', ensureAuth, ensureAdmin, async (req, res, next) => {
 // Routes management (itinerary routes)
 router.get('/routes', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
-    const routes = await RouteModel.find({}).sort({ createdAt: -1 }).lean();
+    const [routes, accomodations] = await Promise.all([
+      RouteModel.find({}).sort({ createdAt: -1 }).lean(),
+      Accomodation.find({}).sort({ accomodation_name: 1 }).lean(),
+    ]);
     res.render('admin/routes', {
       title: 'Admin • Routes',
       description: 'Create or edit itinerary routes.',
       keywords: 'admin, routes, itinerary',
-      page: 'dashboard',
+      page: 'admin',
       routes,
+      accomodations,
     });
   } catch (err) { next(err); }
 });
 
 router.post('/routes', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
-    const { name, description, day, origin, destination, accomodationName, accomodationPrice, vehicle_fee, adult_number, children_number, park_fee, transit_fee } = req.body;
+    const { name, description, day, origin, destination, accomodationName, vehicle_fee, park_fee_adult, park_fee_child, transit_fee } = req.body;
     const errors = [];
     if (!name || !description) errors.push('Please provide route name and description.');
     const dayNum = Number(day || 1);
-    const accPrice = Number(accomodationPrice || 0);
     const vehicleFee = Number(vehicle_fee || 0);
-    const adults = Number(adult_number || 1);
-    const children = Number(children_number || 0);
-    const park = Number(park_fee || 0);
+    const parkAdult = Number(park_fee_adult || 0);
+    const parkChild = Number(park_fee_child || 0);
     const transit = Number(transit_fee || 0);
     if (!Number.isFinite(dayNum) || dayNum <= 0) errors.push('Day must be a positive number.');
-    if (!Number.isFinite(accPrice) || accPrice < 0) errors.push('Accommodation price is invalid.');
     if (!Number.isFinite(vehicleFee) || vehicleFee < 0) errors.push('Vehicle fee is invalid.');
     if (errors.length) {
       req.flash('error', errors.join(' '));
       return res.redirect('/admin/routes');
+    }
+    // Lookup accommodation price from DB
+    let accPrice = 0; let accName = 'N/A';
+    if (accomodationName) {
+      const accDoc = await Accomodation.findOne({ accomodation_name: accomodationName }).lean();
+      accPrice = Number(accDoc?.price || 0);
+      accName = accomodationName;
     }
     await RouteModel.create({
       name: name.trim(),
@@ -72,11 +77,10 @@ router.post('/routes', ensureAuth, ensureAdmin, async (req, res, next) => {
       day: dayNum,
       origin: (origin || '').trim(),
       destination: (destination || '').trim(),
-      accomodation: { name: (accomodationName || '').trim() || 'N/A', price: accPrice },
+      accomodation: { name: accName, price: accPrice },
       vehicle_fee: vehicleFee,
-      park_fee: park,
-      adult_number: adults,
-      children_number: children,
+      park_fee_adult: parkAdult,
+      park_fee_child: parkChild,
       transit_fee: transit,
     });
     req.flash('success', 'Route added successfully.');
@@ -87,14 +91,18 @@ router.post('/routes', ensureAuth, ensureAdmin, async (req, res, next) => {
 // Edit route form
 router.get('/routes/:id/edit', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
-    const r = await RouteModel.findById(req.params.id).lean();
+    const [r, accomodations] = await Promise.all([
+      RouteModel.findById(req.params.id).lean(),
+      Accomodation.find({}).sort({ accomodation_name: 1 }).lean(),
+    ]);
     if (!r) { req.flash('error', 'Route not found.'); return res.redirect('/admin/routes'); }
     res.render('admin/edit-route', {
       title: 'Admin • Edit Route',
       description: 'Edit itinerary route.',
       keywords: 'admin, routes, edit',
-      page: 'dashboard',
+      page: 'admin',
       routeItem: r,
+      accomodations,
     });
   } catch (err) { next(err); }
 });
@@ -102,20 +110,20 @@ router.get('/routes/:id/edit', ensureAuth, ensureAdmin, async (req, res, next) =
 // Update route
 router.post('/routes/:id/edit', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
-    const { name, description, day, origin, destination, accomodationName, accomodationPrice, vehicle_fee, adult_number, children_number, park_fee, transit_fee } = req.body;
+    const { name, description, day, origin, destination, accomodationName, vehicle_fee, park_fee_adult, park_fee_child, transit_fee } = req.body;
     const errors = [];
     if (!name || !description) errors.push('Please provide route name and description.');
     const dayNum = Number(day || 1);
-    const accPrice = Number(accomodationPrice || 0);
     const vehicleFee = Number(vehicle_fee || 0);
-    const adults = Number(adult_number || 1);
-    const children = Number(children_number || 0);
-    const park = Number(park_fee || 0);
+    const parkAdult = Number(park_fee_adult || 0);
+    const parkChild = Number(park_fee_child || 0);
     const transit = Number(transit_fee || 0);
     if (!Number.isFinite(dayNum) || dayNum <= 0) errors.push('Day must be a positive number.');
-    if (!Number.isFinite(accPrice) || accPrice < 0) errors.push('Accommodation price is invalid.');
     if (!Number.isFinite(vehicleFee) || vehicleFee < 0) errors.push('Vehicle fee is invalid.');
+    if (!accomodationName) errors.push('Please select an accommodation.');
     if (errors.length) { req.flash('error', errors.join(' ')); return res.redirect(`/admin/routes/${req.params.id}/edit`); }
+    const accDoc = await Accomodation.findOne({ accomodation_name: accomodationName }).lean();
+    const accPrice = Number(accDoc?.price || 0);
     await RouteModel.updateOne(
       { _id: req.params.id },
       {
@@ -125,11 +133,10 @@ router.post('/routes/:id/edit', ensureAuth, ensureAdmin, async (req, res, next) 
           day: dayNum,
           origin: (origin || '').trim(),
           destination: (destination || '').trim(),
-          accomodation: { name: (accomodationName || '').trim() || 'N/A', price: accPrice },
+          accomodation: { name: (accomodationName || '').trim(), price: accPrice },
           vehicle_fee: vehicleFee,
-          park_fee: park,
-          adult_number: adults,
-          children_number: children,
+          park_fee_adult: parkAdult,
+          park_fee_child: parkChild,
           transit_fee: transit,
         }
       }
@@ -159,7 +166,7 @@ router.get('/accomodations', ensureAuth, ensureAdmin, async (req, res, next) => 
       title: 'Admin • Accomodations',
       description: 'Create or edit accomodations.',
       keywords: 'admin, accomodations, lodging',
-      page: 'dashboard',
+      page: 'admin',
       accomodations,
       routes,
     });
@@ -203,7 +210,7 @@ router.get('/accomodations/:id/edit', ensureAuth, ensureAdmin, async (req, res, 
       title: 'Admin • Edit Accommodation',
       description: 'Edit accommodation details.',
       keywords: 'admin, accommodation, edit',
-      page: 'dashboard',
+      page: 'admin',
       accomodation: a,
       routes,
     });
@@ -255,7 +262,7 @@ router.get('/users', ensureAuth, ensureAdmin, async (req, res, next) => {
       title: 'Admin • Users',
       description: 'List of users, roles and balances.',
       keywords: 'admin, users, roles',
-      page: 'dashboard',
+      page: 'admin',
       users,
     });
   } catch (err) { next(err); }
@@ -270,20 +277,6 @@ router.post('/users/:id/role', ensureAuth, ensureAdmin, async (req, res, next) =
     }
     await User.updateOne({ _id: req.params.id }, { $set: { role } });
     req.flash('success', 'Role updated.');
-    return res.redirect('/admin/users');
-  } catch (err) { next(err); }
-});
-
-router.post('/users/:id/fund', ensureAuth, ensureAdmin, async (req, res, next) => {
-  try {
-    const amount = Number(req.body.amount);
-    if (!Number.isFinite(amount) || amount === 0) { req.flash('error', 'Amount is invalid.'); return res.redirect('/admin/users'); }
-    const user = await User.findById(req.params.id);
-    if (!user) { req.flash('error', 'User not found.'); return res.redirect('/admin/users'); }
-    user.balance = (user.balance || 0) + amount;
-    await user.save();
-    await Transaction.create({ userId: user._id, type: amount > 0 ? 'credit' : 'debit', amount: Math.abs(amount), balanceAfter: user.balance, reference: 'ADMIN-ADJUST' });
-    req.flash('success', 'User balance updated.');
     return res.redirect('/admin/users');
   } catch (err) { next(err); }
 });
