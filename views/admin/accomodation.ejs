@@ -1,46 +1,54 @@
 <section class="py-4">
   <div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="h5 mb-0">Admin • Services</h1>
+    <h1 class="h5 mb-0">Admin • Accomodations</h1>
   </div>
   <div class="row g-3">
     <div class="col-lg-5">
       <div class="card sb-card"><div class="card-body">
-        <h2 class="h6 mb-3">Add Service</h2>
-        <form action="/admin/services" method="post" class="sb-form">
-          <div class="mb-2"><label class="form-label" for="name">Name</label><input id="name" name="name" class="form-control" required></div>
-          <div class="mb-2"><label class="form-label" for="category">Category</label><input id="category" name="category" class="form-control" required></div>
-          <div class="mb-2"><label class="form-label" for="pricePerUnit">Price per Unit (TZS)</label><input id="pricePerUnit" name="pricePerUnit" type="number" step="1" min="1" class="form-control" required></div>
-          <div class="row g-2 mb-2">
-            <div class="col"><label class="form-label" for="min">Min</label><input id="min" name="min" type="number" class="form-control" value="10" min="1"></div>
-            <div class="col"><label class="form-label" for="max">Max</label><input id="max" name="max" type="number" class="form-control" value="10000" min="1"></div>
+        <h2 class="h6 mb-3">Add Accommodation</h2>
+        <form action="/admin/accomodations" method="post" class="sb-form">
+          <div class="mb-2"><label class="form-label" for="accomodation_name">Accommodation Name</label><input id="accomodation_name" name="accomodation_name" class="form-control" required></div>
+          <div class="mb-2"><label class="form-label" for="route_name">Route Name</label>
+            <select id="route_name" name="route_name" class="form-select" required>
+              <option value="" disabled selected>Select route…</option>
+              <% (routes || []).forEach(function(r){ %>
+                <option value="<%= r.name %>"><%= r.name %></option>
+              <% }) %>
+            </select>
           </div>
-          <div class="mb-3"><label class="form-label" for="description">Description</label><textarea id="description" name="description" class="form-control" rows="2"></textarea></div>
+          <div class="row g-2 mb-2">
+            <div class="col"><label class="form-label" for="price">Price (USD)</label><input id="price" name="price" type="number" step="1" min="0" class="form-control" required></div>
+            <div class="col"><label class="form-label" for="concession_fee">Concession Fee (USD)</label><input id="concession_fee" name="concession_fee" type="number" step="1" min="0" class="form-control" value="0"></div>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="isConserved" name="isConserved">
+            <label class="form-check-label" for="isConserved">Inside Conservation Area</label>
+          </div>
           <div class="d-flex justify-content-end"><button class="btn btn-primary" type="submit">Save</button></div>
         </form>
       </div></div>
     </div>
     <div class="col-lg-7">
       <div class="card sb-card"><div class="card-body">
-        <h2 class="h6 mb-3">Services List</h2>
+        <h2 class="h6 mb-3">Accommodations List</h2>
         <div class="table-responsive">
           <table class="table table-hover align-middle">
-            <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Min/Max</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Name</th><th>Route</th><th>Price</th><th>Conserved</th><th>Concession Fee</th><th>Actions</th></tr></thead>
             <tbody>
-              <% if (!services || services.length === 0) { %>
-                <tr><td colspan="6" class="text-center text-muted">No services yet.</td></tr>
+              <% if (!accomodations || accomodations.length === 0) { %>
+                <tr><td colspan="6" class="text-center text-muted">No accommodations yet.</td></tr>
               <% } else { %>
-                <% services.forEach(function(s){ %>
+                <% accomodations.forEach(function(a){ %>
                   <tr>
-                    <td><%= s.name %></td>
-                    <td><%= s.category %></td>
-                    <td>TZS <%= Number(s.pricePerUnit).toLocaleString('en-US') %></td>
-                    <td><%= s.min %> / <%= s.max %></td>
-                    <td>
-                      <span class="badge bg-<%= s.isActive ? 'success' : 'secondary' %>"><%= s.isActive ? 'active' : 'inactive' %></span>
-                    </td>
-                    <td>
-                      <form action="/admin/services/<%= s._id %>/toggle" method="post" class="d-inline">
-                        <button class="btn btn-sm btn-outline-secondary" type="submit"><%= s.isActive ? 'Deactivate' : 'Activate' %></button>
+                    <td><%= a.accomodation_name %></td>
+                    <td><%= a.route_name %></td>
+                    <td>USD <%= Number(a.price).toLocaleString('en-US') %></td>
+                    <td><span class="badge bg-<%= a.isConserved ? 'success' : 'secondary' %>"><%= a.isConserved ? 'yes' : 'no' %></span></td>
+                    <td>USD <%= Number(a.concession_fee || 0).toLocaleString('en-US') %></td>
+                    <td class="text-nowrap">
+                      <a class="btn btn-sm btn-outline-primary" href="/admin/accomodations/<%= a._id %>/edit">Edit</a>
+                      <form action="/admin/accomodations/<%= a._id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Delete this accommodation?');">
+                        <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
                       </form>
                     </td>
                   </tr>

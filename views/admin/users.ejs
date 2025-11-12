@@ -15,7 +15,7 @@
                 <td><%= u.name %></td>
                 <td class="small text-muted"><%= u.email %></td>
                 <td><span class="badge bg-<%= u.role === 'admin' ? 'primary' : 'secondary' %>"><%= u.role %></span></td>
-                <td>TZS <%= Number(u.balance || 0).toLocaleString('en-US') %></td>
+                <td>USD <%= Number(u.balance || 0).toLocaleString('en-US') %></td>
                 <td>
                   <form action="/admin/users/<%= u._id %>/role" method="post" class="d-inline">
                     <select name="role" class="form-select form-select-sm d-inline-block w-auto me-2">

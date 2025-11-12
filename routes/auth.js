@@ -21,13 +21,21 @@ router.post('/login', (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if (err) return next(err);
     if (!user) {
-      const msg = info?.message || 'Hati si sahihi.';
-      return res.render('fragments/auth-message', { layout: false, kind: 'danger', messages: [msg] });
+      const msg = info?.message || 'Invalid credentials.';
+      // HTMX response returns fragment, non-HTMX falls back to flash + redirect
+      if (req.get('HX-Request')) {
+        return res.render('fragments/auth-message', { layout: false, kind: 'danger', messages: [msg] });
+      }
+      try { req.flash('error', msg); } catch (_) {}
+      return res.redirect('/auth/login');
     }
     req.logIn(user, (err) => {
       if (err) return next(err);
-      res.set('HX-Redirect', '/dashboard');
-      return res.status(200).end();
+      if (req.get('HX-Request')) {
+        res.set('HX-Redirect', '/dashboard');
+        return res.status(200).end();
+      }
+      return res.redirect('/dashboard');
     });
   })(req, res, next);
 });

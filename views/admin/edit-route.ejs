@@ -1,0 +1,41 @@
+<section class="py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h5 mb-0">Admin • Edit Route</h1>
+    <a class="btn btn-sm btn-outline-secondary" href="/admin/routes">Back</a>
+  </div>
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card sb-card"><div class="card-body">
+        <form action="/admin/routes/<%= routeItem._id %>/edit" method="post" class="sb-form">
+          <div class="mb-2"><label class="form-label" for="name">Name</label><input id="name" name="name" class="form-control" value="<%= routeItem.name %>" required></div>
+          <div class="mb-2"><label class="form-label" for="description">Description</label><textarea id="description" name="description" class="form-control" rows="3" required><%= routeItem.description %></textarea></div>
+          <div class="row g-2 mb-2">
+            <div class="col"><label class="form-label" for="origin">Origin</label><input id="origin" name="origin" class="form-control" value="<%= routeItem.origin || '' %>"></div>
+            <div class="col"><label class="form-label" for="destination">Destination</label><input id="destination" name="destination" class="form-control" value="<%= routeItem.destination || '' %>"></div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col"><label class="form-label" for="day">Day</label><input id="day" name="day" type="number" class="form-control" value="<%= routeItem.day %>" min="1"></div>
+            <div class="col"><label class="form-label" for="vehicle_fee">Vehicle Fee (USD)</label><input id="vehicle_fee" name="vehicle_fee" type="number" class="form-control" value="<%= routeItem.vehicle_fee || 0 %>" min="0"></div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col"><label class="form-label" for="park_fee">Park Fee (USD)</label><input id="park_fee" name="park_fee" type="number" class="form-control" value="<%= routeItem.park_fee || 0 %>" min="0"></div>
+            <div class="col"><label class="form-label" for="transit_fee">Transit Fee (USD)</label><input id="transit_fee" name="transit_fee" type="number" class="form-control" value="<%= routeItem.transit_fee || 0 %>" min="0"></div>
+          </div>
+          
+          <div class="row g-2 mb-2">
+            <div class="col"><label class="form-label" for="adult_number">Adults</label><input id="adult_number" name="adult_number" type="number" class="form-control" value="<%= routeItem.adult_number %>" min="0"></div>
+            <div class="col"><label class="form-label" for="children_number">Children</label><input id="children_number" name="children_number" type="number" class="form-control" value="<%= routeItem.children_number %>" min="0"></div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col"><label class="form-label" for="accomodationName">Accommodation Name</label><input id="accomodationName" name="accomodationName" class="form-control" value="<%= (routeItem.accomodation && routeItem.accomodation.name) || '' %>"></div>
+            <div class="col"><label class="form-label" for="accomodationPrice">Accommodation Price (USD)</label><input id="accomodationPrice" name="accomodationPrice" type="number" class="form-control" value="<%= (routeItem.accomodation && routeItem.accomodation.price) || 0 %>" min="0"></div>
+          </div>
+          <div class="d-flex justify-content-end gap-2">
+            <a class="btn btn-outline-secondary" href="/admin/routes">Cancel</a>
+            <button class="btn btn-primary" type="submit">Save Changes</button>
+          </div>
+        </form>
+      </div></div>
+    </div>
+  </div>
+</section>

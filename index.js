@@ -65,12 +65,8 @@ app.use(require('./middlewares/attachLocals'));
 // Routes
 app.use('/', require('./routes/index'));
 app.use('/auth', require('./routes/auth'));
-app.use('/dashboard', require('./routes/dashboard'));
 app.use('/admin', require('./routes/admin'));
 app.use('/api', require('./routes/api'));
-app.use('/blog', require('./routes/blog'));
-// Payments (Zeno)
-app.use('/zeno', require('./routes/zeno'));
 
 // 404 and error handlers
 const { notFound, serverError } = require('./middlewares/errorHandler');

@@ -7,18 +7,18 @@
       <div class="card h-100"><div class="card-body"><div class="text-muted small">Users</div><div class="h5 mb-0"><%= usersCount %></div></div></div>
     </div>
     <div class="col-md-3">
-      <div class="card h-100"><div class="card-body"><div class="text-muted small">Active Services</div><div class="h5 mb-0"><%= servicesActive %></div></div></div>
+      <div class="card h-100"><div class="card-body"><div class="text-muted small">Routes</div><div class="h5 mb-0"><%= servicesActive %></div></div></div>
     </div>
     <div class="col-md-3">
-      <div class="card h-100"><div class="card-body"><div class="text-muted small">Pending Orders</div><div class="h5 mb-0"><%= ordersPending %></div></div></div>
+      <div class="card h-100"><div class="card-body"><div class="text-muted small">Accommodations</div><div class="h5 mb-0"><%= ordersPending %></div></div></div>
     </div>
     <div class="col-md-3">
-      <div class="card h-100"><div class="card-body"><div class="text-muted small">Total Credited (TZS)</div><div class="h5 mb-0"><%= Number(totalCredited).toLocaleString('en-US') %></div></div></div>
+      <div class="card h-100"><div class="card-body"><div class="text-muted small">Total Credited (USD)</div><div class="h5 mb-0"><%= Number(totalCredited).toLocaleString('en-US') %></div></div></div>
     </div>
   </div>
   <div class="mt-4 d-flex gap-2">
-    <a class="btn btn-sm btn-primary" href="/admin/services">Services</a>
-    <a class="btn btn-sm btn-secondary" href="/admin/users">Users</a>
-    <a class="btn btn-sm btn-outline-secondary" href="/admin/orders">Orders</a>
+    <a class="btn btn-sm btn-primary" href="/admin/routes">Routes</a>
+    <a class="btn btn-sm btn-secondary" href="/admin/accomodations">Accommodations</a>
+    <a class="btn btn-sm btn-outline-secondary" href="/admin/users">Users</a>
   </div>
 </section>

@@ -1,58 +1,75 @@
 <section class="py-4">
   <div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="h5 mb-0">Admin • Orders</h1>
-    <form class="d-flex align-items-center" method="get">
-      <label class="me-2 small text-muted">Status</label>
-      <select name="status" class="form-select form-select-sm me-2" onchange="this.form.submit()">
-        <option value="pending" <%= status==='pending'?'selected':'' %>>pending</option>
-        <option value="processing" <%= status==='processing'?'selected':'' %>>processing</option>
-        <option value="completed" <%= status==='completed'?'selected':'' %>>completed</option>
-        <option value="failed" <%= status==='failed'?'selected':'' %>>failed</option>
-        <option value="all" <%= status==='all'?'selected':'' %>>all</option>
-      </select>
-    </form>
+    <h1 class="h5 mb-0">Admin • Routes</h1>
   </div>
-
-  <div class="card sb-card"><div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle">
-        <thead><tr><th>Date</th><th>User</th><th>Service</th><th>Qty</th><th>Price</th><th>Status</th><th>Action</th></tr></thead>
-        <tbody>
-          <% if (!orders || orders.length === 0) { %>
-            <tr><td colspan="7" class="text-center text-muted">No data.</td></tr>
-          <% } else { %>
-            <% orders.forEach(function(o){ %>
-              <tr>
-                <td><%= new Date(o.createdAt).toLocaleString('en-GB') %></td>
-                <td><%= (o.userId && (o.userId.name + ' • ' + o.userId.email)) || '-' %></td>
-                <td><%= (o.serviceId && o.serviceId.name) || '-' %></td>
-                <td><%= o.quantity %></td>
-                <td>TZS <%= Number(o.price).toLocaleString('en-US') %></td>
-                <td>
-                  <% const m = { pending: 'secondary', processing: 'info', completed: 'success', failed: 'danger' };
-                     const cls = m[o.status] || 'secondary'; %>
-                  <span class="badge bg-<%= cls %>"><%= o.status %></span>
-                </td>
-                <td>
-                  <form action="/admin/orders/<%= o._id %>/status" method="post" class="d-inline">
-                    <select name="status" class="form-select form-select-sm d-inline-block w-auto me-2">
-                      <option value="pending" <%= o.status==='pending'?'selected':'' %>>pending</option>
-                      <option value="processing" <%= o.status==='processing'?'selected':'' %>>processing</option>
-                      <option value="completed" <%= o.status==='completed'?'selected':'' %>>completed</option>
-                      <option value="failed" <%= o.status==='failed'?'selected':'' %>>failed</option>
-                    </select>
-                    <div class="form-check form-check-inline align-middle me-2">
-                      <input class="form-check-input" type="checkbox" name="refund" id="refund-<%= o._id %>">
-                      <label class="form-check-label small" for="refund-<%= o._id %>">Refund</label>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary" type="submit">Update</button>
-                  </form>
-                </td>
-              </tr>
-            <% }) %>
-          <% } %>
-        </tbody>
-      </table>
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <div class="card sb-card"><div class="card-body">
+        <h2 class="h6 mb-3">Add Route</h2>
+        <form action="/admin/routes" method="post" class="sb-form">
+          <div class="mb-2"><label class="form-label" for="name">Name</label><input id="name" name="name" class="form-control" required></div>
+          <div class="mb-2"><label class="form-label" for="description">Description</label><textarea id="description" name="description" class="form-control" rows="2" required></textarea></div>
+          <div class="row g-2 mb-2">
+            <div class="col"><label class="form-label" for="origin">Origin</label><input id="origin" name="origin" class="form-control" placeholder="Arusha"></div>
+            <div class="col"><label class="form-label" for="destination">Destination</label><input id="destination" name="destination" class="form-control" placeholder="Tarangire National Park"></div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col"><label class="form-label" for="day">Day</label><input id="day" name="day" type="number" class="form-control" value="1" min="1"></div>
+            <div class="col"><label class="form-label" for="vehicle_fee">Vehicle Fee (USD)</label><input id="vehicle_fee" name="vehicle_fee" type="number" class="form-control" value="0" min="0"></div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col"><label class="form-label" for="park_fee">Park Fee (USD)</label><input id="park_fee" name="park_fee" type="number" class="form-control" value="0" min="0"></div>
+            <div class="col"><label class="form-label" for="transit_fee">Transit Fee (USD)</label><input id="transit_fee" name="transit_fee" type="number" class="form-control" value="0" min="0"></div>
+          </div>
+          
+          
+          <div class="row g-2 mb-2">
+            <div class="col"><label class="form-label" for="adult_number">Adults</label><input id="adult_number" name="adult_number" type="number" class="form-control" value="1" min="0"></div>
+            <div class="col"><label class="form-label" for="children_number">Children</label><input id="children_number" name="children_number" type="number" class="form-control" value="0" min="0"></div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col"><label class="form-label" for="accomodationName">Accommodation Name</label><input id="accomodationName" name="accomodationName" class="form-control"></div>
+            <div class="col"><label class="form-label" for="accomodationPrice">Accommodation Price (USD)</label><input id="accomodationPrice" name="accomodationPrice" type="number" class="form-control" value="0" min="0"></div>
+          </div>
+          <div class="d-flex justify-content-end"><button class="btn btn-primary" type="submit">Save</button></div>
+        </form>
+      </div></div>
     </div>
-  </div></div>
+    <div class="col-lg-7">
+      <div class="card sb-card"><div class="card-body">
+        <h2 class="h6 mb-3">Routes List</h2>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead><tr><th>Name</th><th>Description</th><th>Day</th><th>Accommodation</th><th>Fees</th><th>Adults/Children</th><th>Actions</th></tr></thead>
+            <tbody>
+              <% if (!routes || routes.length === 0) { %>
+                <tr><td colspan="7" class="text-center text-muted">No routes yet.</td></tr>
+              <% } else { %>
+                <% routes.forEach(function(r){ %>
+                  <tr>
+                    <td><%= r.name %></td>
+                    <td class="small"><%= r.description %></td>
+                    <td><%= r.day %></td>
+                    <td><%= (r.accomodation && r.accomodation.name) || '-' %> — USD <%= Number((r.accomodation && r.accomodation.price) || 0).toLocaleString('en-US') %></td>
+                    <td class="small">
+                      <div>Vehicle: USD <%= Number(r.vehicle_fee || 0).toLocaleString('en-US') %></div>
+                      <% if (r.park_fee) { %><div>Park: USD <%= Number(r.park_fee).toLocaleString('en-US') %></div><% } %>
+                      <% if (r.transit_fee) { %><div>Transit: USD <%= Number(r.transit_fee).toLocaleString('en-US') %></div><% } %>
+                    </td>
+                    <td><%= r.adult_number %> / <%= r.children_number %></td>
+                    <td class="text-nowrap">
+                      <a class="btn btn-sm btn-outline-primary" href="/admin/routes/<%= r._id %>/edit">Edit</a>
+                      <form action="/admin/routes/<%= r._id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Delete this route?');">
+                        <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div></div>
+    </div>
+  </div>
 </section>

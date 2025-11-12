@@ -1,0 +1,7 @@
+<% if (Array.isArray(messages) && messages.length) { %>
+  <div class="alert alert-<%= kind || 'info' %>" role="alert">
+    <% messages.forEach(function(m){ %>
+      <div><%= m %></div>
+    <% }) %>
+  </div>
+<% } %>

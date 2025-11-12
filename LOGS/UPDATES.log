@@ -1,0 +1,7 @@
+2025-11-12T14:19:58Z | AI | Align to Itinerary System: removed bcrypt residues, fixed passport, added HTMX auth fragment, repurposed admin (routes/accommodations), added seed script scaffolding, created /LOGS, updated AGENTS.md.
+2025-11-12T14:30:00Z | AI | Admin CRUD: added edit/delete for Routes and Accommodations; new views (edit-route.ejs, edit-accomodation.ejs); updated list views with actions; updated AGENTS.md.
+2025-11-12T14:40:00Z | AI | Updated Route schema (origin/destination + fee fields) based on HINTS PDFs; expanded admin create/edit forms to capture fees; extended seed data to reflect example day routes and accommodations.
+2025-11-12T14:50:00Z | AI | Simplified fees per feedback: replaced adult/child/crater fees with single park_fee; added isConserved radio + concession fee toggle; route_name in accommodation now selects from DB routes; added small /public/js/ui.js.
+2025-11-12T14:55:00Z | AI | Set currency to USD across admin views and seeds; removed TZS conversions and labels; park/concession/transit/vehicle/accommodation amounts are now USD.
+2025-11-12T15:05:00Z | AI | Moved isConserved + concession_fee strictly to Accommodations (removed from Routes schema/UI); fixed Route.accomodation schema shape; added user seed (samia/2025).
+2025-11-12T15:10:00Z | AI | Implemented login button + HTMX+fallback login flow: updated views/auth/login.ejs, improved /auth/login POST to handle both HTMX and non-HTMX correctly.

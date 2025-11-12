@@ -1,8 +1,8 @@
-# Tanzania Adv. Group SMM Panel — Implementation Blueprint
+# Tanzania Adventures Group — Itinery Generating System
 
-This document refines the original brief into a clear, implementation-ready plan. It specifies structure, routes, models, environment, coding standards, and acceptance criteria to enable fast, consistent delivery by a small team or an AI agent.
+Implementation guide for the Tanzania Adventures Group Itinery Generating System. This replaces legacy SMM panel language and aligns routes, models, UI, and practices to the itinerary use-case.
 
-Last Synced: 2025-10-28T13:29:43.364Z
+Last Synced: 2025-11-12T14:19:58Z
 
 ## Change Discipline
 - Always update both `AGENTS.md` and `/LOGS/UPDATES.log` for every change.
@@ -10,9 +10,9 @@ Last Synced: 2025-10-28T13:29:43.364Z
 - Significant decisions go to `/LOGS/COMMENTS.md`; features to `CHANGELOG.md`.
 
 ## Overview
-- Goal: Build an Itinery Generating System for Tanzania Aventures Group.
+- Goal: Tanzania Adventures Group Itinery Generating System (prototype, local use).
 - Stack: Express.js, EJS (layouts + partials), MongoDB (Mongoose), Bootstrap 5, HTMX, Passport + express-session.
-- Priorities: Good UX, simplicity, modular code, admin-ready foundation.
+- Priorities: Simple, mobile-first UX; admin can manage routes and accommodations.
 
 ## Environment & Setup
 - Node: 18+ (LTS recommended)
@@ -37,10 +37,13 @@ tz-ag-sys/
 │
 ├── /config
 │   ├── db.js             # Mongoose connection
-│   └── passport.js       # Local strategy + serialize/deserialize
+│   └── passport.js       # Local strategy (plain password for prototype)
 │
-├── /models               # Mongoose schemas
-.....
+├── /models               # Mongoose schemas (User, Route, Accomodation, Booking)
+├── /routes               # index, auth, admin, api (legacy endpoints may exist)
+├── /views                # layouts, partials, auth, admin, fragments, errors
+├── /public               # css/theme.css, js/*, assets
+└── /LOGS                 # change tracking (see below)
 
 Notes on /LOGS
 - Purpose: ensure continuity across contributors/agents.
@@ -54,18 +57,37 @@ Notes on /LOGS
 ## Dependencies
 - Runtime: express, express-session, passport, passport-local, mongoose, connect-mongo, ejs, express-ejs-layouts, dotenv, htmx.org, morgan, connect-flash
 - Dev: nodemon
+- Note: No bcrypt or hashing. Prototype stores plain passwords by request.
 
 ## Data Models (Mongoose)
 User
 - fields:
-  - password: String, required
-  - username: String, required
-  - role: String, enum ["user", "admin", "owner"], default "user"
+  - name: String, required (used as username at login)
+  - password: String, required (stored in plain text for local prototype)
+  - role: String, enum ["user", "admin", "owner"], default "admin"
   - createdAt, updatedAt: Date
 
-Routes
+Route
 - fields:
-  ...
+  - name: String, required
+  - description: String, required
+  - day: Number (>=1)
+  - origin: String, destination: String (optional)
+  - accomodation: { name: String, price: Number }
+  - vehicle_fee: Number, park_fee: Number
+  - adult_number: Number
+  - children_number: Number
+  - transit_fee: Number
+  - createdAt, updatedAt: Date
+
+Accomodation
+- fields:
+  - accomodation_name: String, required
+  - route_name: String, required
+  - price: Number
+  - isConserved: Boolean
+  - concession_fee: Number
+  - createdAt, updatedAt: Date
 
 
 ## Routes & Views
@@ -75,39 +97,25 @@ Conventions
 - Use standard HTTP status codes and redirects.
 
 Public
-- `GET /` → `views/index/index.ejs` (Landing). Includes sections: hero, huduma (services highlight), bei (pricing preview), CTA "Jiunge".
-- `GET /blog` → `views/blog/index.ejs` (List-only initially). Optional single post route later.
+- `GET /` → redirect to `/auth/login` (no landing page).
 
 Auth
-- `GET /auth/login` → login form
-- `POST /auth/login` → authenticate (Passport local). On success → `/dashboard`, on failure → back with flash.
-- `GET /auth/register` → register form
-- `POST /auth/register` → if email exists: update that user’s name, phone, and password; otherwise create; auto-login then redirect to `/dashboard`.
-- `GET /auth/reset` → reset form (email-only placeholder)
-- `POST /auth/reset` → flash success message in English; actual email integration later.
-- `POST /auth/logout` → destroy session; redirect `/` with flash.
+- `GET /auth/login` → login form (HTMX-enhanced + non-JS fallback with submit button).
+- `POST /auth/login` → authenticate (Passport local, plain password compare). On success: HTMX responds with `HX-Redirect: /dashboard`, non-HTMX redirects to `/dashboard`. On failure: HTMX returns `fragments/auth-message`, non-HTMX flashes error and redirects back.
+- `POST /auth/logout` → destroy session; redirect `/`.
  
 
 Dashboard (guarded)
-- `GET /dashboard` → overview: salio (balance), shughuli za karibuni (recent orders/transactions).
-- `GET /dashboard/services` → list all active services and prices.
-- `GET /dashboard/new-order` → order form (select service, quantity, link). Shows computed total.
-- `POST /dashboard/new-order` → create order; debit balance; create transaction.
-- `GET /dashboard/orders` → user orders table with status.
-- `GET /dashboard/add-funds` → add funds screen (placeholder for payment integration).
-- `POST /dashboard/add-funds` → mock credit transaction for now; update balance.
+- Basic skeleton (TBD) for itinerary generation and summaries.
 
 HTMX Endpoints (progressive enhancement)
 - Use forms that work without JS; enhance with HTMX where helpful.
-- Suggested endpoints returning fragments under `views/fragments/`:
-  - `GET /api/price?serviceId=...&qty=...` → returns `fragments/price.ejs` showing computed total.
-  - `POST /api/orders` → returns `fragments/order-row.ejs` to prepend into orders table.
-  - `POST /api/funds` → returns `fragments/balance.ejs` to update balance display.
+- Auth uses `fragments/auth-message.ejs`. Additional fragments can be added as features grow.
 
 Auth via HTMX
-- Forms (register/login/reset) submit with `hx-post` to `/auth/*` endpoints and target a `#auth-messages` container per page.
-- On success, server responds with `HX-Redirect` header to navigate (e.g., to `/dashboard`).
-- On validation errors, return `views/fragments/auth-message.ejs` with messages array and a `kind` (`success|info|warning|danger`).
+- Login form submits with `hx-post` to `/auth/login` and targets `#auth-messages`.
+- On success, respond with `HX-Redirect: /dashboard`.
+- On validation errors, return `views/fragments/auth-message.ejs` with `kind` and `messages`.
 
 ## Middlewares
 - `authCheck.ensureAuth(req, res, next)` → if not logged in, redirect `/auth/login` with flash.
@@ -119,11 +127,11 @@ Auth via HTMX
 - `errorHandler` → centralized error capture; render `errors/500.ejs` with user-friendly English message; log stack in server console only.
 
 ## Authentication (Passport Local)
-- Username field: `email` (unique)
-- Verify function: compare `bcryptjs.compare` on `password` vs `passwordHash`.
-- Sessions: `express-session` + `connect-mongo` with TTL (7 days) and Mongo collection `sessions`.
+- Username field: `username` (maps to `User.name`).
+- Verify function: plain equality of `req.body.password` to `User.password` (prototype only; do NOT use in production).
+- Sessions: `express-session` + `connect-mongo` with TTL (7 days) and collection `sessions`.
 - Cookie: `httpOnly`, `sameSite=lax`, `maxAge=7d`; store `ttl=7d`, `collectionName='sessions'`, `autoRemove='native'`.
-- Serialize: by user `_id`. Minimal session payload.
+- Serialize: by user `_id`. `deserializeUser` excludes `password`.
 
 ## UI & EJS Conventions
 - Layout: `layouts/main.ejs` contains `<header>`, `<nav>`, `<main>`, `<footer>`; yield with `<%- body %>`.
@@ -131,7 +139,7 @@ Auth via HTMX
 - Alerts: use `connect-flash` keys `success`, `error`, `info`; render with Bootstrap alerts.
 - Toasts: render flash messages via Bootstrap toast partial `views/partials/toasts.ejs`; errors use red (bg-danger), show on page load.
 - Bootstrap: use grid + cards; avoid custom CSS unless necessary.
-- English copy: short, clear, and consistent; use Tanzanian context (TZS, M-Pesa).
+- English copy: short, clear, and consistent; currency is USD.
 - Navbar logic: if `res.locals.user` exists, show `Dashibodi` and `Toka`; otherwise show `Ingia`.
 
 ## SEO & Metadata
@@ -139,7 +147,7 @@ Auth via HTMX
 - `page` values: `home`, `blog`, `blog-post`, `dashboard`, `orders`, `services`, `new-order`, `add-funds`, `auth-login`, `auth-register`, `404`, `500`, etc.
 - Keep `title` and `description` in clear English. `keywords` as a comma-separated English list.
 - Layout must output `<title>`, `<meta name="description">`, `<meta name="keywords">`. Optionally include Open Graph tags.
-- Example: `res.render('index/index', { title: 'Karibu Tanzania Adv. Group', description: 'Paneli ya SMM kwa Tanzania', keywords: 'smm, mitandao ya kijamii, tanzania, bei nafuu', page: 'home' })`.
+- Root redirects to login, so no landing page metadata is needed.
 
 ## Nav Activeness
 - Determine active navbar links using the `page` variable, not `req.path`.
@@ -212,7 +220,7 @@ Dark Mode (optional, future)
 
 Content & Copy (English)
 - Buttons/CTAs are verbs: "Weka Oda", "Ongeza Salio", "Hifadhi".
-- Currency: `TZS 12,345` (use non-breaking space between code and number if possible).
+- Currency: `USD 1,234` (use non-breaking space between code and number if possible).
 - Dates: `DD/MM/YYYY` for UI; ISO for logs.
 
 Assets & Structure
@@ -252,14 +260,12 @@ Design Acceptance
 - All user-facing strings in English, including errors and flashes.
 
 ## Implementation Phases
-1) Bootstrap app: config, DB, layouts, landing, 404/500
-2) Auth: register/login/logout, sessions, flashes
-3) Dashboard skeleton:
-4) New routes
-5) New Accomodations
-6) 
-7) Admin basics: ensureAdmin middleware, `/routes/admin.js`, `/views/admin/index.ejs`
-8) Admin CRUD for services, order moderation, users/transactions list
+1) Bootstrap app: config, DB, layout, 404/500, root→/auth/login
+2) Auth: login/logout (HTMX), sessions, flashes
+3) Admin basics: routes and accommodations list + create, users list/role
+4) Admin CRUD: add/edit/delete for Routes and Accommodations
+5) Dashboard skeleton for itinerary generation
+6) Seed data for Routes and Accomodation
 
 ## Acceptance Criteria
 - User can only login, logout; sessions persist across refreshes.
@@ -271,7 +277,12 @@ Design Acceptance
 
 Admin Acceptance
 - Non-admins cannot access `/admin` routes (403 or redirect with flash in English).
-- Admin can create/edit routes and accomodations.
+- Admin can create/edit routes and accommodations.
+
+## Seeding
+- Command: `npm run seed` (runs `node scripts/seed.js`).
+- Seeds sample Route and Accomodation documents suitable for local demo.
+- Safe to run multiple times (uses upsert-like guards by name).
 
 
 ## 🎨 Tanzania Adv. Group Theme Guide (MVP Style)
