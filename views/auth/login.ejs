@@ -1,0 +1,24 @@
+<section class="py-5 sb-auth">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card sb-card">
+        <div class="card-body p-4">
+          <div class="text-center mb-3"><span class="sb-hero-icon sb-hero-primary"><i class="fa-solid fa-right-to-bracket"></i></span></div>
+          <h1 class="h4 text-center mb-3">Ingia | Tanzania Adv. Itinery Generator</h1>
+          <p class="text-muted text-center mb-4">Karibu tena! Ingia ili kuendelea na shughuli zako.</p>
+          <div id="auth-messages" class="mb-3"></div>
+          <form hx-post="/auth/login" hx-target="#auth-messages" hx-swap="innerHTML" class="sb-form">
+            <div class="mb-3 input-group sb-input-group">
+              <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+              <input type="text" class="form-control" id="username" name="username" placeholder="Username: eg. shemdoe" required>
+            </div>
+            <div class="mb-3 input-group sb-input-group">
+              <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+              <input type="password" class="form-control" id="password" name="password" placeholder="Nenosiri" required>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
