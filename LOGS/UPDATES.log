@@ -26,3 +26,17 @@
 2025-11-12T22:08:00Z | AI | Removed Route.accomodation from schema and all admin flows; updated admin routes list and edit forms; validated accommodation route_name must match existing Route; updated seeds to stop embedding accommodation in Route.
 2025-11-12T22:14:00Z | AI | Admin Routes layout: stacked Add Route and Routes List vertically (single column) instead of side-by-side.
 2025-11-12T22:18:00Z | AI | Reverted Admin Routes to two-column layout (Add: lg-4, List: lg-8) and widened Fees column with w-25 to prevent it being too thin.
+2025-11-13T12:30:01Z AI - Guard itinerary detail view against missing populated routes to stop runtime errors.
+2025-11-13T12:32:19Z AI - Enforce itinerary show route hydration on the server and redirect when referenced routes are missing.
+2025-11-13T12:34:30Z AI - Replaced itinerary route-id Set comprehension with explicit loop for junior-friendly readability.
+2025-11-13T12:38:05Z AI - Added itinerary delete route plus detail-page button with confirm dialog.
+2025-11-13T12:44:53Z AI - Implemented itinerary edit form/routes plus list-level action buttons (view/edit/delete).
+2025-11-13T12:51:22Z AI - Populated itinerary edit form fields via route population so only missing routes render blank inputs.
+2025-11-13T13:01:42Z AI - Added layout-free itinerary print route/view and updated UI to link via 'Open Print Preview'.
+2025-11-13T13:11:12Z AI - Added print-color-adjust CSS so print preview keeps theme colors when exporting.
+2025-11-13T13:28:53Z AI - Added inclusions/exclusions text capture plus profit percent to itinerary forms, model, and print view.
+2025-11-13T13:56:59Z AI - Swapped itinerary route/accommodation inputs to live select dropdowns backed by IDs and updated server flows accordingly.
+2025-11-13T14:17:25Z AI - Added per-day fee breakdown on itinerary review (vehicle, park, transit, accommodation, concession) before saving.
+2025-11-13T14:29:43Z AI - Added accommodation price hints to selects and ensured concession fees roll into accommodation totals everywhere.
+2025-11-13T14:32:58Z AI - Added profit-inclusive totals on itinerary review (client total = base + profit).
+2025-11-13T14:38:06Z AI - Clarified review page accommodation fees (base + concession subtotal) so totals reflect concession fees visibly.

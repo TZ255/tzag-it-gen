@@ -6,7 +6,7 @@
   <div class="card sb-card"><div class="card-body">
     <div class="table-responsive">
       <table class="table table-hover align-middle">
-        <thead><tr><th>Title</th><th>Start Date</th><th>Total (USD)</th><th>Days</th><th></th></tr></thead>
+        <thead><tr><th>Title</th><th>Start Date</th><th>Total (USD)</th><th>Days</th><th class="text-end">Actions</th></tr></thead>
         <tbody>
           <% if (!itineraries || itineraries.length===0) { %>
             <tr><td colspan="5" class="text-center text-muted">No itineraries yet.</td></tr>
@@ -17,7 +17,15 @@
                 <td><%= it.startDate ? new Date(it.startDate).toLocaleDateString('en-GB') : '-' %></td>
                 <td>USD <%= Number((it.totals && it.totals.grand) || 0).toLocaleString('en-US') %></td>
                 <td><%= (it.days || []).length %></td>
-                <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="/dashboard/itineraries/<%= it._id %>">View</a></td>
+                <td>
+                  <div class="d-flex gap-2 justify-content-end">
+                    <a class="btn btn-sm btn-outline-secondary" href="/dashboard/itineraries/<%= it._id %>">View</a>
+                    <a class="btn btn-sm btn-outline-primary" href="/dashboard/itineraries/<%= it._id %>/edit">Edit</a>
+                    <form action="/dashboard/itineraries/<%= it._id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Delete this itinerary? This action cannot be undone.');">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                  </div>
+                </td>
               </tr>
             <% }) %>
           <% } %>
@@ -26,4 +34,3 @@
     </div>
   </div></div>
 </section>
-

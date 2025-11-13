@@ -3,7 +3,11 @@
     <h1 class="h5 mb-0"><%= it.title %></h1>
     <div class="d-flex gap-2">
       <a class="btn btn-sm btn-outline-secondary" href="/dashboard/itineraries">Back</a>
-      <button class="btn btn-sm btn-primary" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Print</button>
+      <a class="btn btn-sm btn-outline-primary" href="/dashboard/itineraries/<%= it._id %>/edit"><i class="fa-solid fa-pen me-1"></i> Edit</a>
+      <a class="btn btn-sm btn-primary" href="/dashboard/itineraries/<%= it._id %>/print" target="_blank" rel="noopener"><i class="fa-solid fa-print me-1"></i> Open Print Preview</a>
+      <form action="/dashboard/itineraries/<%= it._id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Delete this itinerary? This action cannot be undone.');">
+        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash me-1"></i> Delete</button>
+      </form>
     </div>
   </div>
   <div class="mb-2 text-muted small">

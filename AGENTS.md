@@ -274,6 +274,15 @@ Design Acceptance
 - Added `/public/css/theme.css` implementing design tokens and Bootstrap mapping.
 - Implemented `Itinerary` model and itinerary flow (list, create in 2 steps, show).
 - Added calculator util for totals; created sidebar navigation layout.
+- Added server-side guard for itinerary details to ensure all referenced routes exist before rendering and simplified the hydration logic for clarity.
+- Added itinerary deletion endpoint and UI button so admins can remove itineraries safely.
+- Added itinerary edit workflow (list/detail actions + prepopulated edit form) so admins can fix day selections without recreating the itinerary; missing routes render as blank inputs for manual correction.
+- Added print-friendly itinerary preview route/view (layout-free) accessible via the new "Open Print Preview" button for PDF exports.
+- Ensured print preview enforces browser color preservation via `print-color-adjust` so theme colors survive PDF export.
+- Captured custom inclusions/exclusions and internal profit percent on itineraries (create/edit forms) with storage on the model and rendering on the print preview (profit remains internal-only).
+- Replaced route/accommodation datalists with ID-backed select pickers (new + edit) so deleted records never appear in suggestions and server logic always references current documents.
+- Review step now shows per-day fee breakdowns (vehicle, park, transit, accommodation + concession fees) before saving itineraries.
+- Accommodation selectors display price hints and concession fees are now included in accommodation totals system-wide. The review step now itemizes base vs. concession amounts so admins can verify the totals (client grand total includes profit).
 
 ## Itinerary Generation — Way Forward
 - Source of truth: `Route` (per-day legs, fees, pax counts) + `Accomodation` (by `route_name`).

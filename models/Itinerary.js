@@ -27,10 +27,15 @@ const itinerarySchema = new mongoose.Schema(
       transit: { type: Number, default: 0 },
       grand: { type: Number, default: 0 },
     },
+    inclusions: { type: [String], default: [] },
+    exclusions: { type: [String], default: [] },
+    profit: {
+      percent: { type: Number, default: 0 },
+      amount: { type: Number, default: 0 },
+    },
     notes: { type: String, trim: true },
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model('Itinerary', itinerarySchema);
-

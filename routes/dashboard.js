@@ -7,6 +7,20 @@ const { computeItineraryTotals } = require('../utils/calc');
 
 const router = express.Router();
 
+function textAreaToList(text) {
+  if (!text) return [];
+  return String(text)
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
+}
+
+function normalizePercent(value) {
+  const pct = Number(value);
+  if (!Number.isFinite(pct)) return 0;
+  return Math.max(0, Math.min(100, pct));
+}
+
 // Dashboard home
 router.get('/', ensureAuth, async (req, res, next) => {
   try {
@@ -62,17 +76,19 @@ router.get('/itineraries/new', ensureAuth, async (req, res, next) => {
 // Step 2: choose accommodations for selected routes
 router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) => {
   try {
-    const { title, startDate, adults, children } = req.body;
+    const { title, startDate, adults, children, inclusionsText, exclusionsText, profitPercent } = req.body;
     // Arrays from dynamic rows
     const dayArr = Array.isArray(req.body.day) ? req.body.day : [req.body.day].filter(Boolean);
-    const routeNameArr = Array.isArray(req.body.routeName) ? req.body.routeName : [req.body.routeName].filter(Boolean);
-    const accomodationNameArr = Array.isArray(req.body.accomodationName) ? req.body.accomodationName : [req.body.accomodationName].filter(Boolean);
+    const routeIdArr = Array.isArray(req.body.routeId) ? req.body.routeId : [req.body.routeId].filter(Boolean);
+    const accomodationIdArr = Array.isArray(req.body.accomodationId) ? req.body.accomodationId : [req.body.accomodationId].filter(Boolean);
 
-    const rows = dayArr.map((d, i) => ({
-      day: Number(d || i + 1),
-      routeName: (routeNameArr[i] || '').trim(),
-      accomodationName: (accomodationNameArr[i] || '').trim(),
-    })).filter(r => r.routeName);
+    const rows = dayArr
+      .map((d, i) => ({
+        day: Number(d || i + 1),
+        routeId: (routeIdArr[i] || '').trim(),
+        accomodationId: (accomodationIdArr[i] || '').trim(),
+      }))
+      .filter(r => r.routeId);
 
     if (rows.length === 0) {
       req.flash('error', 'Please add at least one day with a route.');
@@ -80,21 +96,22 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
     }
 
     // Fetch needed docs
-    const routeNames = [...new Set(rows.map(r => r.routeName))];
-    const accNames = [...new Set(rows.map(r => r.accomodationName).filter(Boolean))];
+    const routeIds = [...new Set(rows.map(r => r.routeId))];
+    const accIds = [...new Set(rows.map(r => r.accomodationId).filter(Boolean))];
     const [routesAll, accAll] = await Promise.all([
-      RouteModel.find({ name: { $in: routeNames } }).lean(),
-      Accommodation.find({ accomodation_name: { $in: accNames } }).lean(),
+      RouteModel.find({ _id: { $in: routeIds } }).lean(),
+      Accommodation.find({ _id: { $in: accIds } }).lean(),
     ]);
-    const routeByName = new Map(routesAll.map(r => [r.name, r]));
-    const accByName = new Map(accAll.map(a => [a.accomodation_name, a]));
+    const routeById = new Map(routesAll.map(r => [String(r._id), r]));
+    const accById = new Map(accAll.map(a => [String(a._id), a]));
 
     // Normalize days with ids and prices, and compute totals
     const daysNorm = rows
       .map(r => ({
         day: r.day,
-        routeDoc: routeByName.get(r.routeName),
-        accomodationDoc: r.accomodationName ? accByName.get(r.accomodationName) : null,
+        routeDoc: routeById.get(r.routeId),
+        accomodationDoc: r.accomodationId ? accById.get(r.accomodationId) : null,
+        accomodationId: r.accomodationId || '',
       }))
       .filter(x => x.routeDoc)
       .sort((a, b) => a.day - b.day);
@@ -110,10 +127,20 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
       accomodation: {
         name: x.accomodationDoc ? x.accomodationDoc.accomodation_name : 'N/A',
         price: x.accomodationDoc ? Number(x.accomodationDoc.price || 0) : 0,
+        concession_fee: x.accomodationDoc ? Number(x.accomodationDoc.concession_fee || 0) : 0,
       }
     }));
     const pax = { adults: Number(adults || 0), children: Number(children || 0) };
     const result = computeItineraryTotals(routes, daysForCalc, pax);
+    const profitPct = normalizePercent(profitPercent || 0);
+    const baseGrand = Number(result.totals.grand || 0);
+    const profitAmount = baseGrand * (profitPct / 100);
+    const totalsWithProfit = {
+      ...result.totals,
+      grandWithProfit: baseGrand + profitAmount,
+    };
+    const inclusionsList = textAreaToList(inclusionsText);
+    const exclusionsList = textAreaToList(exclusionsText);
 
     res.render('itineraries/review', {
       title: 'New Itinerary • Review',
@@ -123,13 +150,43 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
       titleDraft: title,
       startDateDraft: startDate,
       pax,
-      days: daysNorm.map((x, idx) => ({
-        index: idx + 1,
-        day: x.day,
-        route: x.routeDoc,
-        accomodationName: x.accomodationDoc ? x.accomodationDoc.accomodation_name : 'N/A',
-        accomodationPrice: x.accomodationDoc ? Number(x.accomodationDoc.price || 0) : 0,
-      })),
+      inclusionsList,
+      exclusionsList,
+      profitPercent: profitPct,
+      profitAmount,
+      totalsWithProfit,
+      inclusionsText,
+      exclusionsText,
+      days: daysNorm.map((x, idx) => {
+        const vehicleFee = Number(x.routeDoc.vehicle_fee || 0);
+        const transitFee = Number(x.routeDoc.transit_fee || 0);
+        const parkAdult = Number(x.routeDoc.park_fee_adult || 0) * Number(pax.adults || 0);
+        const parkChild = Number(x.routeDoc.park_fee_child || 0) * Number(pax.children || 0);
+        const parkTotal = (typeof x.routeDoc.park_fee_adult !== 'undefined' || typeof x.routeDoc.park_fee_child !== 'undefined')
+          ? (parkAdult + parkChild)
+          : Number(x.routeDoc.park_fee || 0);
+        const accomodationBase = x.accomodationDoc ? Number(x.accomodationDoc.price || 0) : 0;
+        const concessionFee = x.accomodationDoc ? Number(x.accomodationDoc.concession_fee || 0) : 0;
+        const accomodationTotal = accomodationBase + concessionFee;
+        return {
+          index: idx + 1,
+          day: x.day,
+          route: x.routeDoc,
+          accomodationName: x.accomodationDoc ? x.accomodationDoc.accomodation_name : (x.accomodationId ? 'Not found' : 'N/A'),
+          accomodationPrice: accomodationTotal,
+          accomodationId: x.accomodationDoc ? String(x.accomodationDoc._id) : '',
+          fees: {
+            vehicle: vehicleFee,
+            transit: transitFee,
+            parkAdults: Number(x.routeDoc.park_fee_adult || 0),
+            parkChildren: Number(x.routeDoc.park_fee_child || 0),
+            parkTotal,
+            accomodation: accomodationTotal,
+            concession: concessionFee,
+            accomodationBase,
+          }
+        };
+      }),
       totals: result.totals,
     });
   } catch (err) { next(err); }
@@ -138,16 +195,48 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
 // Create itinerary
 router.post('/itineraries', ensureAuth, async (req, res, next) => {
   try {
-    const { title, startDate, adults, children, routeId, accomodationName, accomodationPrice } = req.body;
+    const { title, startDate, adults, children, routeId, accomodationId, inclusionsText, exclusionsText, profitPercent } = req.body;
     if (!title) { req.flash('error', 'Title is required.'); return res.redirect('/dashboard/itineraries/new'); }
-    const routeIds = Array.isArray(routeId) ? routeId : [routeId].filter(Boolean);
-    const names = Array.isArray(accomodationName) ? accomodationName : [accomodationName];
-    const prices = Array.isArray(accomodationPrice) ? accomodationPrice : [accomodationPrice];
-    const days = routeIds.map((id, i) => ({ routeId: id, accomodation: { name: names[i] || 'N/A', price: Number(prices[i] || 0) } }));
+    const routeIdsRaw = Array.isArray(routeId) ? routeId : [routeId];
+    const accomodationIdsRaw = Array.isArray(accomodationId) ? accomodationId : [accomodationId];
+    const dayInputs = routeIdsRaw
+      .map((id, idx) => ({
+        routeId: (id || '').trim(),
+        accomodationId: (accomodationIdsRaw[idx] || '').trim(),
+      }))
+      .filter(d => d.routeId);
 
-    const routes = await RouteModel.find({ _id: { $in: routeIds } }).lean();
+    if (!dayInputs.length) {
+      req.flash('error', 'At least one route is required.');
+      return res.redirect('/dashboard/itineraries/new');
+    }
+
+    const routeIds = [...new Set(dayInputs.map(d => d.routeId))];
+    const accIds = [...new Set(dayInputs.map(d => d.accomodationId).filter(Boolean))];
+    const [routes, accommodations] = await Promise.all([
+      RouteModel.find({ _id: { $in: routeIds } }).lean(),
+      Accommodation.find({ _id: { $in: accIds } }).lean(),
+    ]);
+    const accById = new Map(accommodations.map(a => [String(a._id), a]));
+
+    const days = dayInputs.map(d => {
+      const accDoc = d.accomodationId ? accById.get(d.accomodationId) : null;
+      return {
+        routeId: d.routeId,
+        accomodation: {
+          name: accDoc ? accDoc.accomodation_name : 'N/A',
+          price: accDoc ? Number(accDoc.price || 0) : 0,
+          concession_fee: accDoc ? Number(accDoc.concession_fee || 0) : 0,
+        }
+      };
+    });
+
     const pax = { adults: Number(adults || 0), children: Number(children || 0) };
     const { totals } = computeItineraryTotals(routes, days, pax);
+    const inclusionsList = textAreaToList(inclusionsText);
+    const exclusionsList = textAreaToList(exclusionsText);
+    const profitPct = normalizePercent(profitPercent || 0);
+    const profitAmount = Number(totals.grand || 0) * (profitPct / 100);
 
     const doc = await Itinerary.create({
       title: title.trim(),
@@ -155,8 +244,166 @@ router.post('/itineraries', ensureAuth, async (req, res, next) => {
       pax,
       days: days.map(d => ({ route: d.routeId, accomodation: d.accomodation })),
       totals,
+      inclusions: inclusionsList,
+      exclusions: exclusionsList,
+      profit: { percent: profitPct, amount: profitAmount },
     });
     return res.redirect(`/dashboard/itineraries/${doc._id}`);
+  } catch (err) { next(err); }
+});
+// Edit itinerary form
+router.get('/itineraries/:id/edit', ensureAuth, async (req, res, next) => {
+  try {
+    const [itDoc, routes, accomodations] = await Promise.all([
+      Itinerary.findById(req.params.id).populate('days.route').lean(),
+      RouteModel.find({}).sort({ day: 1, name: 1 }).lean(),
+      Accommodation.find({}).sort({ accomodation_name: 1 }).lean(),
+    ]);
+    if (!itDoc) {
+      req.flash('error', 'Itinerary not found.');
+      return res.redirect('/dashboard/itineraries');
+    }
+
+    const accIdByName = new Map(accomodations.map(a => [a.accomodation_name, String(a._id)]));
+    const dayRoutes = Array.isArray(itDoc.days) ? itDoc.days : [];
+    let formDays = dayRoutes.map((day, idx) => {
+      const routeId = day && day.route ? String(day.route._id) : '';
+      const accomodationName = day?.accomodation?.name || '';
+      const accomodationId = accomodationName ? (accIdByName.get(accomodationName) || '') : '';
+      return {
+        dayValue: idx + 1,
+        routeId,
+        accomodationId,
+        accomodationName,
+        accomodationMissing: Boolean(accomodationName && !accomodationId),
+      };
+    });
+    if (!formDays.length) {
+      formDays = [{ dayValue: 1, routeId: '', accomodationId: '', accomodationName: '' }];
+    }
+    const missingRoutesCount = formDays.filter(d => !d.routeId).length;
+    const inclusionsText = (itDoc.inclusions || []).join('\n');
+    const exclusionsText = (itDoc.exclusions || []).join('\n');
+    const profitPercent = normalizePercent(itDoc.profit?.percent || 0);
+
+    res.render('itineraries/edit', {
+      title: `Edit Itinerary • ${itDoc.title}`,
+      description: 'Update itinerary details and day plan.',
+      keywords: 'itinerary, edit, update',
+      page: 'itineraries',
+      it: itDoc,
+      routes,
+      accomodations,
+      formDays,
+      missingRoutesCount,
+      inclusionsText,
+      exclusionsText,
+      profitPercent,
+    });
+  } catch (err) { next(err); }
+});
+
+// Update itinerary
+router.post('/itineraries/:id/edit', ensureAuth, async (req, res, next) => {
+  try {
+    const itineraryId = req.params.id;
+    const redirectBack = `/dashboard/itineraries/${itineraryId}/edit`;
+    const itDoc = await Itinerary.findById(itineraryId).lean();
+    if (!itDoc) {
+      req.flash('error', 'Itinerary not found.');
+      return res.redirect('/dashboard/itineraries');
+    }
+
+    const { title, startDate, adults, children, inclusionsText, exclusionsText, profitPercent } = req.body;
+    if (!title || !title.trim()) {
+      req.flash('error', 'Title is required.');
+      return res.redirect(redirectBack);
+    }
+
+    const toArray = (field) => {
+      if (typeof field === 'undefined') return [];
+      return Array.isArray(field) ? field : [field];
+    };
+    const dayArr = toArray(req.body.day);
+    const routeIdArr = toArray(req.body.routeId);
+    const accomodationIdArr = toArray(req.body.accomodationId);
+
+    const rows = dayArr
+      .map((d, i) => ({
+        day: Number(d || i + 1),
+        routeId: (routeIdArr[i] || '').trim(),
+        accomodationId: (accomodationIdArr[i] || '').trim(),
+      }))
+      .filter(r => r.routeId);
+
+    if (!rows.length) {
+      req.flash('error', 'Please include at least one day with a route.');
+      return res.redirect(redirectBack);
+    }
+
+    const routeIds = [...new Set(rows.map(r => r.routeId))];
+    const accomodationIds = [...new Set(rows.map(r => r.accomodationId).filter(Boolean))];
+    const [routesFound, accomodationsFound] = await Promise.all([
+      RouteModel.find({ _id: { $in: routeIds } }).lean(),
+      Accommodation.find({ _id: { $in: accomodationIds } }).lean(),
+    ]);
+
+    const routeById = new Map(routesFound.map(r => [String(r._id), r]));
+    const accById = new Map(accomodationsFound.map(a => [String(a._id), a]));
+
+    const missingRouteSelections = rows.filter(r => !routeById.has(r.routeId));
+    if (missingRouteSelections.length) {
+      req.flash('error', 'One or more selected routes were not found. Please refresh the page and try again.');
+      return res.redirect(redirectBack);
+    }
+
+    const daysNorm = rows
+      .map(r => ({
+        day: Number.isFinite(r.day) && r.day > 0 ? r.day : 1,
+        routeDoc: routeById.get(r.routeId),
+        accomodationDoc: r.accomodationId ? accById.get(r.accomodationId) : null,
+        accomodationId: r.accomodationId,
+      }))
+      .filter(x => x.routeDoc)
+      .sort((a, b) => a.day - b.day);
+
+    if (!daysNorm.length) {
+      req.flash('error', 'Unable to process itinerary days. Please try again.');
+      return res.redirect(redirectBack);
+    }
+
+    const pax = { adults: Number(adults || 0), children: Number(children || 0) };
+    const daysForCalc = daysNorm.map(x => ({
+      routeId: x.routeDoc._id,
+      accomodation: {
+        name: x.accomodationDoc ? x.accomodationDoc.accomodation_name : (x.accomodationId ? 'Not found' : 'N/A'),
+        price: x.accomodationDoc ? Number(x.accomodationDoc.price || 0) : 0,
+        concession_fee: x.accomodationDoc ? Number(x.accomodationDoc.concession_fee || 0) : 0,
+      }
+    }));
+    const { totals } = computeItineraryTotals(daysNorm.map(x => x.routeDoc), daysForCalc, pax);
+    const inclusionsList = textAreaToList(inclusionsText);
+    const exclusionsList = textAreaToList(exclusionsText);
+    const profitPct = normalizePercent(profitPercent || 0);
+    const profitAmount = Number(totals.grand || 0) * (profitPct / 100);
+
+    await Itinerary.updateOne(
+      { _id: itineraryId },
+      {
+        $set: {
+          title: title.trim(),
+          startDate: startDate ? new Date(startDate) : null,
+          pax,
+          days: daysForCalc.map(d => ({ route: d.routeId, accomodation: d.accomodation })),
+          totals,
+          inclusions: inclusionsList,
+          exclusions: exclusionsList,
+          profit: { percent: profitPct, amount: profitAmount },
+        }
+      }
+    );
+    req.flash('success', 'Itinerary updated successfully.');
+    return res.redirect(`/dashboard/itineraries/${itineraryId}`);
   } catch (err) { next(err); }
 });
 
@@ -164,7 +411,15 @@ router.post('/itineraries', ensureAuth, async (req, res, next) => {
 router.get('/itineraries/:id', ensureAuth, async (req, res, next) => {
   try {
     const it = await Itinerary.findById(req.params.id).populate('days.route').lean();
-    if (!it) { req.flash('error', 'Itinerary not found.'); return res.redirect('/dashboard/itineraries'); }
+    if (!it) {
+      req.flash('error', 'Itinerary not found.');
+      return res.redirect('/dashboard/itineraries');
+    }
+    const missingRoutes = (it.days || []).filter(d => !d.route).length;
+    if (missingRoutes) {
+      req.flash('error', 'Itinerary references routes that no longer exist. Restore the missing route(s) from Admin → Routes and try again.');
+      return res.redirect('/dashboard/itineraries');
+    }
     res.render('itineraries/show', {
       title: `Itinerary • ${it.title}`,
       description: 'Itinerary details and totals.',
@@ -172,6 +427,74 @@ router.get('/itineraries/:id', ensureAuth, async (req, res, next) => {
       page: 'itineraries',
       it,
     });
+  } catch (err) { next(err); }
+});
+
+// Print-friendly itinerary view
+router.get('/itineraries/:id/print', ensureAuth, async (req, res, next) => {
+  try {
+    const it = await Itinerary.findById(req.params.id).populate('days.route').lean();
+    if (!it) {
+      req.flash('error', 'Itinerary not found.');
+      return res.redirect('/dashboard/itineraries');
+    }
+    const missingRoutes = (it.days || []).filter(d => !d.route).length;
+    if (missingRoutes) {
+      req.flash('error', 'Itinerary references routes that no longer exist. Restore the missing route(s) from Admin → Routes and try again.');
+      return res.redirect('/dashboard/itineraries');
+    }
+
+    const formattedDays = (it.days || []).map((day, idx) => ({
+      index: idx + 1,
+      title: day.route.name,
+      description: day.route.description,
+      accommodation: day.accomodation?.name || 'N/A',
+    }));
+
+    const accomodationList = [...new Set((it.days || []).map(d => d.accomodation?.name).filter(Boolean))];
+    const defaultInclusions = [
+      'Private 4x4 Land Cruiser with pop-up roof, unlimited mileage.',
+      'Professional English-speaking safari guide throughout the trip.',
+      'Accommodation as listed per day with full-board meals.',
+      'All park and conservation entry fees for listed destinations.',
+      'Airport pickup and drop-off plus bottled drinking water on drives.',
+      '24/7 ground support and emergency assistance team.',
+      'Domestic flight segments specified in the itinerary (if applicable).',
+    ];
+    const defaultExclusions = [
+      'International flights to/from Tanzania.',
+      'Entry visas, travel insurance, and personal medical coverage.',
+      'Alcoholic beverages and lodge extras not listed as included.',
+      'Extra accommodation nights beyond the confirmed itinerary.',
+      'Tips and gratuities for guides, drivers, and lodge staff.',
+      'Personal expenses such as laundry, souvenirs, and phone calls.',
+    ];
+    const inclusions = (it.inclusions && it.inclusions.length) ? it.inclusions : defaultInclusions;
+    const exclusions = (it.exclusions && it.exclusions.length) ? it.exclusions : defaultExclusions;
+
+    res.render('itineraries/print', {
+      layout: false,
+      title: `${it.title} • Print Preview`,
+      it,
+      formattedDays,
+      accomodationList,
+      inclusions,
+      exclusions,
+    });
+  } catch (err) { next(err); }
+});
+
+// Delete itinerary
+router.post('/itineraries/:id/delete', ensureAuth, async (req, res, next) => {
+  try {
+    const doc = await Itinerary.findById(req.params.id).lean();
+    if (!doc) {
+      req.flash('error', 'Itinerary not found.');
+      return res.redirect('/dashboard/itineraries');
+    }
+    await Itinerary.deleteOne({ _id: req.params.id });
+    req.flash('info', 'Itinerary deleted.');
+    return res.redirect('/dashboard/itineraries');
   } catch (err) { next(err); }
 });
 

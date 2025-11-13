@@ -37,7 +37,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 })();
 
 const sessionName = process.env.SESSION_NAME || 'sb.sid';
-const sessionMaxAgeMs = 1000 * 60 * 60 * 24 * 7; // 7 days
+const sessionMaxAgeMs = 1000 * 60 * 60 * 24 * 1; // 1 day
 app.use(
   session({
     name: sessionName,

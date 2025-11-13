@@ -20,12 +20,22 @@
             <input id="day-1" name="day" type="number" class="form-control" value="1" min="1">
           </div>
           <div class="col-12 col-md-5">
-            <label class="form-label" for="routeName-1">Route</label>
-            <input id="routeName-1" name="routeName" class="form-control" list="route_name_list" placeholder="Start typing route…" required>
+            <label class="form-label" for="routeId-1">Route</label>
+            <select id="routeId-1" name="routeId" class="form-select" required>
+              <option value="">Select route</option>
+              <% (routes || []).forEach(function(r){ %>
+                <option value="<%= r._id %>"><%= r.name %></option>
+              <% }) %>
+            </select>
           </div>
           <div class="col-12 col-md-4">
-            <label class="form-label" for="accomodationName-1">Accommodation</label>
-            <input id="accomodationName-1" name="accomodationName" class="form-control" list="accomodation_name_list" placeholder="Optional — type to search">
+            <label class="form-label" for="accomodationId-1">Accommodation</label>
+            <select id="accomodationId-1" name="accomodationId" class="form-select">
+              <option value="">Optional — choose accommodation</option>
+              <% (accomodations || []).forEach(function(a){ %>
+                <option value="<%= a._id %>"><%= a.accomodation_name %> (USD <%= Number(a.price || 0).toLocaleString('en-US') %>)</option>
+              <% }) %>
+            </select>
           </div>
           <div class="col-12 col-md-1 text-md-end">
             <button type="button" class="btn btn-outline-danger mt-2 mt-md-0" data-remove-row><i class="fa-solid fa-trash"></i></button>
@@ -34,16 +44,26 @@
       </div>
     </div></div>
 
-    <datalist id="route_name_list">
-      <% (routes || []).forEach(function(r){ %>
-        <option value="<%= r.name %>"></option>
-      <% }) %>
-    </datalist>
-    <datalist id="accomodation_name_list">
-      <% (accomodations || []).forEach(function(a){ %>
-        <option value="<%= a.accomodation_name %>"></option>
-      <% }) %>
-    </datalist>
+    <div class="row g-3 mt-3">
+      <div class="col-md-6">
+        <label class="form-label" for="inclusionsText">Price Inclusions (one per line)</label>
+        <textarea id="inclusionsText" name="inclusionsText" class="form-control" rows="5" placeholder="Private 4x4 vehicle\nProfessional guide\nAll park fees"></textarea>
+        <div class="form-text">Use a new line for each item. These appear on the final PDF.</div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="exclusionsText">Price Exclusions (one per line)</label>
+        <textarea id="exclusionsText" name="exclusionsText" class="form-control" rows="5" placeholder="International flights\nVisa fees\nPersonal insurance"></textarea>
+        <div class="form-text">Leave blank if you want to rely on the default language.</div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-3">
+        <label class="form-label" for="profitPercent">Company Profit (%)</label>
+        <input id="profitPercent" name="profitPercent" type="number" class="form-control" value="0" min="0" max="100" step="0.1">
+        <div class="form-text">Internal only. Not shown on the client PDF.</div>
+      </div>
+    </div>
 
     <div class="d-flex justify-content-end mt-3"><button class="btn btn-primary" type="submit">Next</button></div>
   </form>
@@ -55,26 +75,32 @@
       var list = document.getElementById('days-list');
       function addRow(){
         var count = list.querySelectorAll('.it-day-row').length + 1;
-        var wrap = document.createElement('div');
-        wrap.className = 'row g-2 align-items-end it-day-row';
-        wrap.setAttribute('data-row', String(count));
-        wrap.innerHTML = '\
-          <div class="col-12 col-md-2">\
-            <label class="form-label" for="day-'+count+'">Day</label>\
-            <input id="day-'+count+'" name="day" type="number" class="form-control" value="'+count+'" min="1">\
-          </div>\
-          <div class="col-12 col-md-5">\
-            <label class="form-label" for="routeName-'+count+'">Route</label>\
-            <input id="routeName-'+count+'" name="routeName" class="form-control" list="route_name_list" placeholder="Start typing route…" required>\
-          </div>\
-          <div class="col-12 col-md-4">\
-            <label class="form-label" for="accomodationName-'+count+'">Accommodation</label>\
-            <input id="accomodationName-'+count+'" name="accomodationName" class="form-control" list="accomodation_name_list" placeholder="Optional — type to search">\
-          </div>\
-          <div class="col-12 col-md-1 text-md-end">\
-            <button type="button" class="btn btn-outline-danger mt-2 mt-md-0" data-remove-row><i class="fa-solid fa-trash"></i></button>\
-          </div>';
-        list.appendChild(wrap);
+        var template = list.querySelector('.it-day-row');
+        if (!template) return;
+        var clone = template.cloneNode(true);
+        clone.setAttribute('data-row', String(count));
+        var dayInput = clone.querySelector('[name="day"]');
+        if (dayInput) {
+          dayInput.value = count;
+          dayInput.id = 'day-' + count;
+          var dayLabel = clone.querySelector('label[for^="day-"]');
+          if (dayLabel) dayLabel.setAttribute('for', 'day-' + count);
+        }
+        var routeSelect = clone.querySelector('[name="routeId"]');
+        if (routeSelect) {
+          routeSelect.value = '';
+          routeSelect.id = 'routeId-' + count;
+          var routeLabel = clone.querySelector('label[for^="routeId-"]');
+          if (routeLabel) routeLabel.setAttribute('for', 'routeId-' + count);
+        }
+        var accSelect = clone.querySelector('[name="accomodationId"]');
+        if (accSelect) {
+          accSelect.value = '';
+          accSelect.id = 'accomodationId-' + count;
+          var accLabel = clone.querySelector('label[for^="accomodationId-"]');
+          if (accLabel) accLabel.setAttribute('for', 'accomodationId-' + count);
+        }
+        list.appendChild(clone);
       }
       addBtn && addBtn.addEventListener('click', addRow);
       list && list.addEventListener('click', function(e){
@@ -87,10 +113,12 @@
           row.remove();
         } else {
           // Keep at least one row; clear inputs
-          row.querySelector('[name="day"]').value = '1';
-          row.querySelector('[name="routeName"]').value = '';
-          var acc = row.querySelector('[name="accomodationName"]');
-          if (acc) acc.value = '';
+          var dayInput = row.querySelector('[name="day"]');
+          if (dayInput) dayInput.value = '1';
+          var routeSelect = row.querySelector('[name="routeId"]');
+          if (routeSelect) routeSelect.value = '';
+          var accSelect = row.querySelector('[name="accomodationId"]');
+          if (accSelect) accSelect.value = '';
         }
       });
     })();
