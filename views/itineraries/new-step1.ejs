@@ -3,6 +3,7 @@
   <form id="it-new-form" action="/dashboard/itineraries/new/choose-acc" method="post" class="sb-form">
     <div class="row g-3 mb-3">
       <div class="col-md-4"><label class="form-label" for="title">Title</label><input id="title" name="title" class="form-control" placeholder="e.g., 7-Day Northern Circuit" required></div>
+      <div class="col-md-4"><label class="form-label" for="clientName">Client Name</label><input id="clientName" name="clientName" class="form-control" placeholder="Client full name"></div>
       <div class="col-md-3"><label class="form-label" for="startDate">Start Date</label><input id="startDate" name="startDate" type="date" class="form-control"></div>
       <div class="col-md-2"><label class="form-label" for="adults">Adults</label><input id="adults" name="adults" type="number" class="form-control" value="2" min="0"></div>
       <div class="col-md-2"><label class="form-label" for="children">Children</label><input id="children" name="children" type="number" class="form-control" value="0" min="0"></div>
@@ -15,30 +16,38 @@
       </div>
       <div id="days-list" class="d-flex flex-column gap-2">
         <div class="row g-2 align-items-end it-day-row" data-row="1">
-          <div class="col-12 col-md-2">
+          <div class="col-6 col-md-2 col-lg-1">
             <label class="form-label" for="day-1">Day</label>
-            <input id="day-1" name="day" type="number" class="form-control" value="1" min="1">
+            <input id="day-1" name="day" type="number" class="form-control form-control-sm" value="1" min="1">
           </div>
-          <div class="col-12 col-md-5">
+          <div class="col-12 col-md-5 col-lg-4">
             <label class="form-label" for="routeId-1">Route</label>
-            <select id="routeId-1" name="routeId" class="form-select" required>
+            <select id="routeId-1" name="routeId" class="form-select form-select-sm" required>
               <option value="">Select route</option>
               <% (routes || []).forEach(function(r){ %>
                 <option value="<%= r._id %>"><%= r.name %></option>
               <% }) %>
             </select>
           </div>
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-5 col-lg-3">
             <label class="form-label" for="accomodationId-1">Accommodation</label>
-            <select id="accomodationId-1" name="accomodationId" class="form-select">
+            <select id="accomodationId-1" name="accomodationId" class="form-select form-select-sm">
               <option value="">Optional — choose accommodation</option>
               <% (accomodations || []).forEach(function(a){ %>
-                <option value="<%= a._id %>"><%= a.accomodation_name %> (USD <%= Number(a.price || 0).toLocaleString('en-US') %>)</option>
+                <option value="<%= a._id %>"><%= a.accomodation_name %> — <%= a.place %> <%= a.isLuxury ? '(Luxury)' : '' %></option>
               <% }) %>
             </select>
           </div>
-          <div class="col-12 col-md-1 text-md-end">
-            <button type="button" class="btn btn-outline-danger mt-2 mt-md-0" data-remove-row><i class="fa-solid fa-trash"></i></button>
+          <div class="col-6 col-md-2 col-lg-2">
+            <label class="form-label" for="adult_price-1">Adult USD</label>
+            <input id="adult_price-1" name="adult_price" type="number" class="form-control form-control-sm" value="0" min="0" step="1">
+          </div>
+          <div class="col-6 col-md-2 col-lg-1">
+            <label class="form-label" for="child_price-1">Child USD</label>
+            <input id="child_price-1" name="child_price" type="number" class="form-control form-control-sm" value="0" min="0" step="1">
+          </div>
+          <div class="col-12 col-md-1 col-lg-1 text-md-end text-lg-end">
+            <button type="button" class="btn btn-outline-danger btn-sm mt-2 mt-md-0" data-remove-row><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>
       </div>
@@ -100,6 +109,20 @@
           var accLabel = clone.querySelector('label[for^="accomodationId-"]');
           if (accLabel) accLabel.setAttribute('for', 'accomodationId-' + count);
         }
+        var adultInput = clone.querySelector('[name="adult_price"]');
+        if (adultInput) {
+          adultInput.value = '0';
+          adultInput.id = 'adult_price-' + count;
+          var aLabel = clone.querySelector('label[for^="adult_price-"]');
+          if (aLabel) aLabel.setAttribute('for', 'adult_price-' + count);
+        }
+        var childInput = clone.querySelector('[name="child_price"]');
+        if (childInput) {
+          childInput.value = '0';
+          childInput.id = 'child_price-' + count;
+          var cLabel = clone.querySelector('label[for^="child_price-"]');
+          if (cLabel) cLabel.setAttribute('for', 'child_price-' + count);
+        }
         list.appendChild(clone);
       }
       addBtn && addBtn.addEventListener('click', addRow);
@@ -119,6 +142,10 @@
           if (routeSelect) routeSelect.value = '';
           var accSelect = row.querySelector('[name="accomodationId"]');
           if (accSelect) accSelect.value = '';
+          var adultInput = row.querySelector('[name="adult_price"]');
+          if (adultInput) adultInput.value = '0';
+          var childInput = row.querySelector('[name="child_price"]');
+          if (childInput) childInput.value = '0';
         }
       });
     })();

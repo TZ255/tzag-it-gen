@@ -17,13 +17,13 @@ async function main() {
   ]);
 
   const accomodations = [
-    { accomodation_name: 'Kibo Palace Hotel', route_name: 'Arrival – Arusha', price: 150, isConserved: false, concession_fee: 0 },
-    { accomodation_name: 'Tarangire Osupuko Lodge', route_name: 'Arusha – Tarangire National Park', price: 220, isConserved: true, concession_fee: 0 },
-    { accomodation_name: 'Marera Valley Lodge', route_name: 'Arusha – Ngorongoro Conservation Area', price: 180, isConserved: false, concession_fee: 0 },
-    { accomodation_name: 'Lake Manyara Serena Lodge', route_name: 'Arusha – Lake Manyara National Park', price: 200, isConserved: true, concession_fee: 0 },
-    { accomodation_name: 'Nyikani Migration Camp', route_name: 'Arusha – Ndutu via Ngorongoro', price: 260, isConserved: true, concession_fee: 72 },
-    { accomodation_name: 'Baobab Serengeti Camp', route_name: 'Arusha – Central Serengeti via Ngorongoro', price: 280, isConserved: true, concession_fee: 72 },
-    { accomodation_name: 'Kogatende Tented Camp', route_name: 'Arusha – North Serengeti (Kogatende) via Ngorongoro', price: 300, isConserved: true, concession_fee: 72 },
+    { accomodation_name: 'Kibo Palace Hotel', place: 'Arusha', isLuxury: false },
+    { accomodation_name: 'Tarangire Osupuko Lodge', place: 'Tarangire National Park', isLuxury: true },
+    { accomodation_name: 'Marera Valley Lodge', place: 'Karatu', isLuxury: false },
+    { accomodation_name: 'Lake Manyara Serena Lodge', place: 'Lake Manyara', isLuxury: true },
+    { accomodation_name: 'Nyikani Migration Camp', place: 'Ndutu (South Serengeti)', isLuxury: true },
+    { accomodation_name: 'Baobab Serengeti Camp', place: 'Central Serengeti', isLuxury: true },
+    { accomodation_name: 'Kogatende Tented Camp', place: 'North Serengeti (Kogatende)', isLuxury: true },
   ];
   await Accommodation.insertMany(accomodations);
 
@@ -34,7 +34,7 @@ async function main() {
       destination: 'Tarangire National Park',
       description: 'Depart Arusha to Tarangire NP for game drive among elephants and baobabs. Overnight at lodge.',
       day: 1,
-      
+      image: 'https://images.unsplash.com/photo-1543248939-ff40856f65d4?q=80&w=1600&auto=format&fit=crop',
       vehicle_fee: 0,
       park_fee_adult: 60,
       park_fee_child: 30,
@@ -46,7 +46,7 @@ async function main() {
       destination: 'Lake Manyara National Park',
       description: 'Morning drive to Lake Manyara for game drive; scenic forests and tree-climbing lions.',
       day: 2,
-      
+      image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?q=80&w=1600&auto=format&fit=crop',
       vehicle_fee: 0,
       park_fee_adult: 60,
       park_fee_child: 30,
@@ -58,7 +58,7 @@ async function main() {
       destination: 'Ngorongoro Conservation Area',
       description: 'Drive to Ngorongoro highlands; crater rim viewpoints and cultural experiences in Karatu.',
       day: 3,
-      
+      image: 'https://images.unsplash.com/photo-1577041249623-11d4aa55c235?q=80&w=1600&auto=format&fit=crop',
       vehicle_fee: 0,
       park_fee_adult: 60,
       park_fee_child: 30,
@@ -70,7 +70,7 @@ async function main() {
       destination: 'Ndutu (South Serengeti)',
       description: 'Travel across Ngorongoro to Ndutu plains; wildebeest calving grounds during season.',
       day: 4,
-      
+      image: 'https://images.unsplash.com/photo-1581852017103-5c03b5d2e1c0?q=80&w=1600&auto=format&fit=crop',
       vehicle_fee: 0,
       park_fee_adult: 83,
       park_fee_child: 40,
@@ -82,7 +82,7 @@ async function main() {
       destination: 'Central Serengeti (Seronera)',
       description: 'Enter Serengeti through Ngorongoro; classic savannah and resident predators.',
       day: 5,
-      
+      image: 'https://images.unsplash.com/photo-1581852294396-1d60f5da2b5f?q=80&w=1600&auto=format&fit=crop',
       vehicle_fee: 0,
       park_fee_adult: 83,
       park_fee_child: 40,
@@ -94,7 +94,7 @@ async function main() {
       destination: 'North Serengeti (Kogatende)',
       description: 'Continue to the northern plains; Mara River crossings in migration season.',
       day: 6,
-      
+      image: 'https://images.unsplash.com/photo-1516425459321-068c2f4ee0c3?q=80&w=1600&auto=format&fit=crop',
       vehicle_fee: 0,
       park_fee_adult: 83,
       park_fee_child: 40,

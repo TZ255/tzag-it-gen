@@ -6,6 +6,6 @@
  - 2025-11-12: Theme tokens added in `/public/css/theme.css`, mapping to Bootstrap variables for consistent styling with minimal custom CSS.
 
 ## Itinerary Generation Plan
-- Keep `Route` as per-day leg with fees and pax fields; keep `Accomodation` by `route_name` for options and concessions.
-- Add `Itinerary` model referencing ordered `Route` ids and per-day overrides (accommodation choice, pax), store computed totals.
+- Keep `Route` as per-day leg with fees and pax fields; simplify `Accommodation` to a catalog with `accomodation_name`, `place`, and `isLuxury` (no prices stored).
+- `Itinerary` references ordered `Route` ids and per-day accommodation overrides (name plus per-day `adult_price` and `child_price`), storing computed totals.
 - UI flow: dashboard → itinerary builder (HTMX fragments) → review cost breakdown → export printable summary.

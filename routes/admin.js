@@ -46,7 +46,7 @@ router.get('/routes', ensureAuth, ensureAdmin, async (req, res, next) => {
 
 router.post('/routes', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
-    const { name, description, day, origin, destination, vehicle_fee, park_fee_adult, park_fee_child, transit_fee } = req.body;
+    const { name, description, day, origin, destination, image, vehicle_fee, park_fee_adult, park_fee_child, transit_fee } = req.body;
     const errors = [];
     if (!name || !description) errors.push('Please provide route name and description.');
     const dayNum = Number(day || 1);
@@ -66,6 +66,7 @@ router.post('/routes', ensureAuth, ensureAdmin, async (req, res, next) => {
       day: dayNum,
       origin: (origin || '').trim(),
       destination: (destination || '').trim(),
+      image: (image || '').trim(),
       vehicle_fee: vehicleFee,
       park_fee_adult: parkAdult,
       park_fee_child: parkChild,
@@ -94,7 +95,7 @@ router.get('/routes/:id/edit', ensureAuth, ensureAdmin, async (req, res, next) =
 // Update route
 router.post('/routes/:id/edit', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
-    const { name, description, day, origin, destination, vehicle_fee, park_fee_adult, park_fee_child, transit_fee } = req.body;
+    const { name, description, day, origin, destination, image, vehicle_fee, park_fee_adult, park_fee_child, transit_fee } = req.body;
     const errors = [];
     if (!name || !description) errors.push('Please provide route name and description.');
     const dayNum = Number(day || 1);
@@ -114,6 +115,7 @@ router.post('/routes/:id/edit', ensureAuth, ensureAdmin, async (req, res, next) 
           day: dayNum,
           origin: (origin || '').trim(),
           destination: (destination || '').trim(),
+          image: (image || '').trim(),
           vehicle_fee: vehicleFee,
           park_fee_adult: parkAdult,
           park_fee_child: parkChild,
@@ -126,16 +128,11 @@ router.post('/routes/:id/edit', ensureAuth, ensureAdmin, async (req, res, next) 
   } catch (err) { next(err); }
 });
 
-// Delete route
+// Delete route (no accommodation reference check since schema changed)
 router.post('/routes/:id/delete', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
     const route = await RouteModel.findById(req.params.id).lean();
     if (!route) { req.flash('error', 'Route not found.'); return res.redirect('/admin/routes'); }
-    const count = await Accommodation.countDocuments({ route_name: route.name });
-    if (count > 0) {
-      req.flash('error', `Cannot delete route. It is referenced by ${count} accommodation(s).`);
-      return res.redirect('/admin/routes');
-    }
     await RouteModel.deleteOne({ _id: req.params.id });
     req.flash('info', 'Route deleted.');
     return res.redirect('/admin/routes');
@@ -145,42 +142,30 @@ router.post('/routes/:id/delete', ensureAuth, ensureAdmin, async (req, res, next
 // Accommodations management
 router.get('/accommodations', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
-    const [accommodations, routes] = await Promise.all([
-      Accommodation.find({}).sort({ createdAt: -1 }).lean(),
-      RouteModel.find({}).sort({ name: 1 }).select('name').lean()
-    ]);
+    const accommodations = await Accommodation.find({}).sort({ createdAt: -1 }).lean();
     res.render('admin/accommodation', {
       title: 'Admin • Accommodations',
       description: 'Create or edit accommodations.',
       keywords: 'admin, accommodations, lodging',
       page: 'admin',
       accommodations,
-      routes,
     });
   } catch (err) { next(err); }
 });
 
 router.post('/accommodations', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
-    const { accomodation_name, route_name, price, isConserved, concession_fee } = req.body;
+    const { accomodation_name, place, isLuxury } = req.body;
     const errors = [];
-    if (!accomodation_name || !route_name) errors.push('Please provide accommodation and route names.');
-    const priceNum = Number(price || 0);
-    const feeNum = Number(concession_fee || 0);
-    if (!Number.isFinite(priceNum) || priceNum < 0) errors.push('Price is invalid.');
-    if (!Number.isFinite(feeNum) || feeNum < 0) errors.push('Concession fee is invalid.');
-    const routeExists = await RouteModel.findOne({ name: route_name }).lean();
-    if (!routeExists) errors.push('Route name does not match any existing Route.');
+    if (!accomodation_name || !place) errors.push('Please provide accommodation name and place.');
     if (errors.length) {
       req.flash('error', errors.join(' '));
       return res.redirect('/admin/accommodations');
     }
     await Accommodation.create({
       accomodation_name: accomodation_name.trim(),
-      route_name: route_name.trim(),
-      price: priceNum,
-      isConserved: Boolean(isConserved),
-      concession_fee: feeNum,
+      place: place.trim(),
+      isLuxury: Boolean(isLuxury),
     });
     req.flash('success', 'Accommodation added successfully.');
     return res.redirect('/admin/accommodations');
@@ -190,10 +175,7 @@ router.post('/accommodations', ensureAuth, ensureAdmin, async (req, res, next) =
 // Edit accommodation form
 router.get('/accommodations/:id/edit', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
-    const [a, routes] = await Promise.all([
-      Accommodation.findById(req.params.id).lean(),
-      RouteModel.find({}).sort({ name: 1 }).select('name').lean()
-    ]);
+    const a = await Accommodation.findById(req.params.id).lean();
     if (!a) { req.flash('error', 'Accommodation not found.'); return res.redirect('/admin/accommodations'); }
     res.render('admin/edit-accommodation', {
       title: 'Admin • Edit Accommodation',
@@ -201,7 +183,6 @@ router.get('/accommodations/:id/edit', ensureAuth, ensureAdmin, async (req, res,
       keywords: 'admin, accommodation, edit',
       page: 'admin',
       accommodation: a,
-      routes,
     });
   } catch (err) { next(err); }
 });
@@ -209,25 +190,17 @@ router.get('/accommodations/:id/edit', ensureAuth, ensureAdmin, async (req, res,
 // Update accommodation
 router.post('/accommodations/:id/edit', ensureAuth, ensureAdmin, async (req, res, next) => {
   try {
-    const { accomodation_name, route_name, price, isConserved, concession_fee } = req.body;
+    const { accomodation_name, place, isLuxury } = req.body;
     const errors = [];
-    if (!accomodation_name || !route_name) errors.push('Please provide accommodation and route names.');
-    const priceNum = Number(price || 0);
-    const feeNum = Number(concession_fee || 0);
-    if (!Number.isFinite(priceNum) || priceNum < 0) errors.push('Price is invalid.');
-    if (!Number.isFinite(feeNum) || feeNum < 0) errors.push('Concession fee is invalid.');
-    const routeExists = await RouteModel.findOne({ name: route_name }).lean();
-    if (!routeExists) errors.push('Route name does not match any existing Route.');
+    if (!accomodation_name || !place) errors.push('Please provide accommodation name and place.');
     if (errors.length) { req.flash('error', errors.join(' ')); return res.redirect(`/admin/accommodations/${req.params.id}/edit`); }
     await Accommodation.updateOne(
       { _id: req.params.id },
       {
         $set: {
           accomodation_name: accomodation_name.trim(),
-          route_name: route_name.trim(),
-          price: priceNum,
-          isConserved: Boolean(isConserved),
-          concession_fee: feeNum,
+          place: place.trim(),
+          isLuxury: Boolean(isLuxury),
         }
       }
     );

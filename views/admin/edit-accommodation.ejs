@@ -8,21 +8,12 @@
       <div class="card sb-card"><div class="card-body">
         <form action="/admin/accommodations/<%= accommodation._id %>/edit" method="post" class="sb-form">
           <div class="mb-2"><label class="form-label" for="accomodation_name">Accommodation Name</label><input id="accomodation_name" name="accomodation_name" class="form-control" value="<%= accommodation.accomodation_name %>" required></div>
-          <div class="mb-2"><label class="form-label" for="route_name">Route Name</label>
-            <input id="route_name" name="route_name" class="form-control" list="route_name_list" placeholder="Start typing to search…" value="<%= accommodation.route_name %>" required>
-            <datalist id="route_name_list">
-              <% (routes || []).forEach(function(r){ %>
-                <option value="<%= r.name %>"></option>
-              <% }) %>
-            </datalist>
-          </div>
-          <div class="row g-2 mb-2">
-            <div class="col"><label class="form-label" for="price">Price (USD)</label><input id="price" name="price" type="number" step="1" min="0" class="form-control" value="<%= accommodation.price %>" required></div>
-            <div class="col"><label class="form-label" for="concession_fee">Concession Fee (USD)</label><input id="concession_fee" name="concession_fee" type="number" step="1" min="0" class="form-control" value="<%= accommodation.concession_fee || 0 %>"></div>
+          <div class="mb-2"><label class="form-label" for="place">Place</label>
+            <input id="place" name="place" class="form-control" placeholder="e.g., Arusha" value="<%= accommodation.place %>" required>
           </div>
           <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="isConserved" name="isConserved" <%= accommodation.isConserved ? 'checked' : '' %>>
-            <label class="form-check-label" for="isConserved">Inside Conservation Area</label>
+            <input class="form-check-input" type="checkbox" id="isLuxury" name="isLuxury" <%= accommodation.isLuxury ? 'checked' : '' %>>
+            <label class="form-check-label" for="isLuxury">Luxury Accommodation</label>
           </div>
           <div class="d-flex justify-content-end gap-2">
             <a class="btn btn-outline-secondary" href="/admin/accommodations">Cancel</a>

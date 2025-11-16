@@ -40,3 +40,9 @@
 2025-11-13T14:29:43Z AI - Added accommodation price hints to selects and ensured concession fees roll into accommodation totals everywhere.
 2025-11-13T14:32:58Z AI - Added profit-inclusive totals on itinerary review (client total = base + profit).
 2025-11-13T14:38:06Z AI - Clarified review page accommodation fees (base + concession subtotal) so totals reflect concession fees visibly.
+2025-11-16T15:20:00Z | AI | Accommodation schema simplified: removed route_name, price, concession_fee, isConserved; added place and isLuxury. Itinerary days now store per-day adult_price/child_price and totals compute accordingly. Added clientName to itineraries. Updated admin accommodation views, itinerary new/edit/review/show/print flows, calculator, and seed script to reflect new model.
+2025-11-16T15:32:00Z | AI | Optimized itinerary day row layout: reduced column widths and used compact controls so all inputs fit on a single row at lg screens (new and edit forms).
+2025-11-16T15:45:00Z | AI | Print view updated: removed internal cost cards and Investment Summary; added company logo to header; revamped day cards to show route images aligned right with text left. Added `Route.image` field with admin create/edit inputs and seeded sample image URLs.
+2025-11-16T16:00:00Z | AI | Added company contact footer (phone, email, address) to the print view and removed the optimization notice; updated AGENTS.md and docs.
+2025-11-16T16:06:00Z | AI | Improved print pagination: added @page margins and page-break-avoid rules for day cards/sections to prevent content being cut between pages.
+2025-11-16T16:12:00Z | AI | Fixed itinerary edit saving of accommodation unit prices: carried adult_price/child_price through server normalization so totals and persisted values update correctly.

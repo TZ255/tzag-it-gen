@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><%= title %></title>
   <style>
+    @page { margin: 16mm 12mm; }
     :root {
       --primary: #0d6efd;
       --muted: #6c757d;
@@ -22,10 +23,15 @@
     .meta-card strong { font-size: 1.1rem; }
     .section { margin-top: 2.5rem; }
     .section h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
-    .day-card { border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1.25rem; }
+    .day-card { border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1.25rem; break-inside: avoid; page-break-inside: avoid; }
     .day-card h3 { margin: 0 0 0.5rem; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
     .day-card p { margin: 0.5rem 0; line-height: 1.6; }
     .day-card .accommodation { font-weight: 600; }
+    .day-grid { display: grid; grid-template-columns: 1fr 260px; gap: 1rem; align-items: start; }
+    .day-image img { width: 100%; height: auto; border-radius: 0.5rem; border: 1px solid var(--border); object-fit: cover; }
+    .section, .meta-grid, .header { break-inside: avoid; page-break-inside: avoid; }
+    h2, h3 { break-after: avoid; page-break-after: avoid; }
+    p, ul, li, img { orphans: 3; widows: 3; }
     .list-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 1.5rem; }
     ul { margin: 0; padding-left: 1.2rem; line-height: 1.6; }
     .price-table { width: 100%; border-collapse: collapse; }
@@ -33,7 +39,10 @@
     .price-table th { text-transform: uppercase; font-size: 0.85rem; color: var(--muted); letter-spacing: 0.08em; }
     .print-actions { margin-top: 3rem; text-align: center; }
     .print-btn { background: var(--primary); color: #fff; border: none; padding: 0.85rem 2.5rem; border-radius: 999px; font-size: 1rem; cursor: pointer; }
-    .notice { font-size: 0.8rem; color: var(--muted); margin-top: 0.75rem; }
+    .company-info { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); }
+    .company-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 0.75rem 1.5rem; align-items: start; text-align: center; }
+    .company-grid a { color: inherit; text-decoration: none; }
+    .company-grid a:hover { text-decoration: underline; }
     @media print {
       * {
         -webkit-print-color-adjust: exact;
@@ -48,6 +57,7 @@
 <body>
   <div class="sheet">
     <header class="header">
+      <img src="/images/logo.png" alt="Company Logo" width="200" height="110" style="display:block;margin:0 auto 0.5rem;" />
       <p class="text-muted">Custom Safari Brief</p>
       <h1><%= it.title %></h1>
       <p>Travel date: <%= it.startDate ? new Date(it.startDate).toLocaleDateString('en-GB') : 'TBD' %></p>
@@ -56,10 +66,11 @@
 
     <div class="meta-grid">
       <div class="meta-card"><span>Duration</span><strong><%= formattedDays.length %> Days</strong></div>
+      <% if (it.clientName) { %>
+        <div class="meta-card"><span>Client</span><strong><%= it.clientName %></strong></div>
+      <% } %>
       <div class="meta-card"><span>Guests</span><strong>Adults <%= it.pax?.adults || 0 %> · Children <%= it.pax?.children || 0 %></strong></div>
       <div class="meta-card"><span>Itinerary Total (USD)</span><strong><%= Number(it.totals?.grand || 0).toLocaleString('en-US') %></strong></div>
-      <div class="meta-card"><span>Vehicle & Transit</span><strong>USD <%= Number((it.totals?.vehicle || 0) + (it.totals?.transit || 0)).toLocaleString('en-US') %></strong></div>
-      <div class="meta-card"><span>Accommodation</span><strong>USD <%= Number(it.totals?.accomodation || 0).toLocaleString('en-US') %></strong></div>
     </div>
 
     <section class="section">
@@ -67,27 +78,22 @@
       <% formattedDays.forEach(function(day){ %>
         <article class="day-card">
           <h3>Day <%= day.index %>: <%= day.title %></h3>
-          <p><%= day.description || 'Details to be confirmed for this day.' %></p>
-          <p class="accommodation">Accommodation: <%= day.accommodation %></p>
+          <div class="day-grid">
+            <div class="day-text">
+              <p><%= day.description || 'Details to be confirmed for this day.' %></p>
+              <p class="accommodation">Accommodation: <%= day.accommodation %></p>
+            </div>
+            <div class="day-image">
+              <% if (day.image) { %>
+                <img src="<%= day.image %>" alt="<%= day.title %>" />
+              <% } %>
+            </div>
+          </div>
         </article>
       <% }) %>
     </section>
 
-    <section class="section">
-      <h2>Investment Summary</h2>
-      <table class="price-table">
-        <thead>
-          <tr><th>Item</th><th>Amount (USD)</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Accommodation</td><td>USD <%= Number(it.totals?.accomodation || 0).toLocaleString('en-US') %></td></tr>
-          <tr><td>Vehicle & Driver</td><td>USD <%= Number(it.totals?.vehicle || 0).toLocaleString('en-US') %></td></tr>
-          <tr><td>Park & Conservation</td><td>USD <%= Number(it.totals?.park || 0).toLocaleString('en-US') %></td></tr>
-          <tr><td>Transit & Other Fees</td><td>USD <%= Number(it.totals?.transit || 0).toLocaleString('en-US') %></td></tr>
-          <tr><th>Total (2 Adults)</th><th>USD <%= Number(it.totals?.grand || 0).toLocaleString('en-US') %></th></tr>
-        </tbody>
-      </table>
-    </section>
+    
 
     <section class="section">
       <h2>Price Inclusions & Exclusions</h2>
@@ -119,8 +125,15 @@
 
     <div class="print-actions">
       <button class="print-btn" onclick="window.print()">Print This Itinerary</button>
-      <div class="notice">This layout is optimized for PDF export and printing.</div>
     </div>
+
+    <footer class="company-info">
+      <div class="company-grid">
+        <div>Phone: <a href="tel:+255754042154">(+255) 754042154‬</a></div>
+        <div>Email: <a href="mailto:info@tanzaniaadventures.co.tz">info@tanzaniaadventures.co.tz</a></div>
+        <div>Address: P. O. Box 8786, Moshi, Kilimanjaro, Tanzania</div>
+      </div>
+    </footer>
   </div>
 </body>
 </html>

@@ -13,6 +13,7 @@
   <div class="mb-2 text-muted small">
     <span class="me-3">Start: <%= it.startDate ? new Date(it.startDate).toLocaleDateString('en-GB') : '-' %></span>
     <span class="me-3">Pax: Adults <%= it.pax?.adults || 0 %>, Children <%= it.pax?.children || 0 %></span>
+    <% if (it.clientName) { %><span class="me-3">Client: <%= it.clientName %></span><% } %>
     <span>Total: USD <%= Number(it.totals?.grand || 0).toLocaleString('en-US') %></span>
   </div>
   <div class="card sb-card"><div class="card-body">
@@ -22,20 +23,37 @@
         <tbody>
           <% let dayTotal = 0; %>
           <% (it.days || []).forEach(function(d, idx){ %>
-            <% const r = d.route; const v = Number(r.vehicle_fee||0), t = Number(r.transit_fee||0), a = Number(d.accomodation?.price||0);
-               const pa = Number(r.park_fee_adult||0) * Number(it.pax?.adults||0);
-               const pc = Number(r.park_fee_child||0) * Number(it.pax?.children||0);
+            <% const r = d.route || {}; 
+               const adults = Number(it.pax?.adults||0), children = Number(it.pax?.children||0);
+               const v = Number(r.vehicle_fee||0), t = Number(r.transit_fee||0);
+               const parkAdultUnit = Number(r.park_fee_adult||0), parkChildUnit = Number(r.park_fee_child||0);
+               const pa = parkAdultUnit * adults;
+               const pc = parkChildUnit * children;
                const p = (typeof r.park_fee_adult !== 'undefined' || typeof r.park_fee_child !== 'undefined') ? (pa+pc) : Number(r.park_fee||0);
-               dayTotal = v+p+t+a; %>
+               const adultUnit = Number(d.accomodation?.adult_price ?? 0);
+               const childUnit = Number(d.accomodation?.child_price ?? 0);
+               const acc = (adultUnit * adults) + (childUnit * children);
+               dayTotal = v+p+t+acc; %>
             <tr>
               <td><%= idx+1 %></td>
               <td>
                 <div class="fw-semibold"><%= r?.name || '-' %></div>
                 <div class="small text-muted"><%= r?.origin || '-' %> → <%= r?.destination || '-' %></div>
+                <div class="small text-muted mt-1">
+                  Vehicle: USD <%= v.toLocaleString('en-US') %><br>
+                  Park: USD <%= p.toLocaleString('en-US') %>
+                  <% if (parkAdultUnit || parkChildUnit) { %>
+                    <span class="text-muted">(Adults <%= parkAdultUnit %> × <%= adults %>, Children <%= parkChildUnit %> × <%= children %>)</span>
+                  <% } %>
+                  <% if (t) { %><br>Transit: USD <%= t.toLocaleString('en-US') %><% } %>
+                </div>
               </td>
               <td>
                 <div><%= d.accomodation?.name || 'N/A' %></div>
-                <div class="small text-muted">USD <%= Number(d.accomodation?.price||0).toLocaleString('en-US') %></div>
+                <div class="small text-muted">
+                  Unit (Adult): USD <%= adultUnit.toLocaleString('en-US') %> | Unit (Child): USD <%= childUnit.toLocaleString('en-US') %><br>
+                  <span class="d-block">Subtotal: USD <%= acc.toLocaleString('en-US') %></span>
+                </div>
               </td>
               <td class="text-end">USD <%= Number(dayTotal).toLocaleString('en-US') %></td>
             </tr>

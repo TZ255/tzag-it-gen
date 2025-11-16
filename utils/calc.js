@@ -12,9 +12,11 @@ function computeItineraryTotals(routes, days, pax) {
   days.forEach((d, idx) => {
     const route = byId.get(String(d.routeId));
     if (!route) return;
-    const baseAccPrice = Number(d.accomodation?.price || 0) || 0;
-    const concession = Number(d.accomodation?.concession_fee || 0) || 0;
-    const accPrice = baseAccPrice + concession;
+    const adults = Number(pax?.adults || 0);
+    const children = Number(pax?.children || 0);
+    const adultUnit = Number(d.accomodation?.adult_price || 0) || 0;
+    const childUnit = Number(d.accomodation?.child_price || 0) || 0;
+    const accPrice = adultUnit * adults + childUnit * children;
     const v = Number(route.vehicle_fee || 0) || 0;
     let p = 0;
     if (typeof route.park_fee_adult !== 'undefined' || typeof route.park_fee_child !== 'undefined') {

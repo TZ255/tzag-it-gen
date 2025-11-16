@@ -5,7 +5,8 @@ const itineraryDaySchema = new mongoose.Schema(
     route: { type: mongoose.Schema.Types.ObjectId, ref: 'Route', required: true },
     accomodation: {
       name: { type: String, required: true },
-      price: { type: Number, required: true, default: 0 },
+      adult_price: { type: Number, required: true, default: 0 },
+      child_price: { type: Number, required: true, default: 0 },
     },
   },
   { _id: false }
@@ -14,6 +15,7 @@ const itineraryDaySchema = new mongoose.Schema(
 const itinerarySchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
+    clientName: { type: String, trim: true },
     startDate: { type: Date },
     pax: {
       adults: { type: Number, default: 2 },

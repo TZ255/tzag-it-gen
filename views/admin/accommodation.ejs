@@ -8,21 +8,12 @@
         <h2 class="h6 mb-3">Add Accommodation</h2>
         <form action="/admin/accommodations" method="post" class="sb-form">
           <div class="mb-2"><label class="form-label" for="accomodation_name">Accommodation Name</label><input id="accomodation_name" name="accomodation_name" class="form-control" required></div>
-          <div class="mb-2"><label class="form-label" for="route_name">Route Name</label>
-            <input id="route_name" name="route_name" class="form-control" list="route_name_list" placeholder="Start typing to search…" required>
-            <datalist id="route_name_list">
-              <% (routes || []).forEach(function(r){ %>
-                <option value="<%= r.name %>"></option>
-              <% }) %>
-            </datalist>
-          </div>
-          <div class="row g-2 mb-2">
-            <div class="col"><label class="form-label" for="price">Price (USD)</label><input id="price" name="price" type="number" step="1" min="0" class="form-control" required></div>
-            <div class="col"><label class="form-label" for="concession_fee">Concession Fee (USD)</label><input id="concession_fee" name="concession_fee" type="number" step="1" min="0" class="form-control" value="0"></div>
+          <div class="mb-2"><label class="form-label" for="place">Place</label>
+            <input id="place" name="place" class="form-control" placeholder="e.g., Arusha" required>
           </div>
           <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="isConserved" name="isConserved">
-            <label class="form-check-label" for="isConserved">Inside Conservation Area</label>
+            <input class="form-check-input" type="checkbox" id="isLuxury" name="isLuxury">
+            <label class="form-check-label" for="isLuxury">Luxury Accommodation</label>
           </div>
           <div class="d-flex justify-content-end"><button class="btn btn-primary" type="submit">Save</button></div>
         </form>
@@ -33,18 +24,16 @@
         <h2 class="h6 mb-3">Accommodations List</h2>
         <div class="table-responsive">
           <table class="table table-hover align-middle">
-            <thead><tr><th>Name</th><th>Route</th><th>Price</th><th>Conserved</th><th>Concession Fee</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Name</th><th>Place</th><th>Luxury</th><th>Actions</th></tr></thead>
             <tbody>
               <% if (!accommodations || accommodations.length === 0) { %>
-                <tr><td colspan="6" class="text-center text-muted">No accommodations yet.</td></tr>
+                <tr><td colspan="4" class="text-center text-muted">No accommodations yet.</td></tr>
               <% } else { %>
                 <% accommodations.forEach(function(a){ %>
                   <tr>
                     <td><%= a.accomodation_name %></td>
-                    <td><%= a.route_name %></td>
-                    <td>USD <%= Number(a.price).toLocaleString('en-US') %></td>
-                    <td><span class="badge bg-<%= a.isConserved ? 'success' : 'secondary' %>"><%= a.isConserved ? 'yes' : 'no' %></span></td>
-                    <td>USD <%= Number(a.concession_fee || 0).toLocaleString('en-US') %></td>
+                    <td><%= a.place %></td>
+                    <td><span class="badge bg-<%= a.isLuxury ? 'primary' : 'secondary' %>"><%= a.isLuxury ? 'yes' : 'no' %></span></td>
                     <td class="text-nowrap">
                       <a class="btn btn-sm btn-outline-primary" href="/admin/accommodations/<%= a._id %>/edit">Edit</a>
                       <form action="/admin/accommodations/<%= a._id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Delete this accommodation?');">

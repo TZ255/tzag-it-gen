@@ -60,7 +60,7 @@ router.get('/itineraries/new', ensureAuth, async (req, res, next) => {
   try {
     const [routes, accommodations] = await Promise.all([
       RouteModel.find({}).sort({ day: 1, name: 1 }).select('name day origin destination').lean(),
-      Accommodation.find({}).sort({ accomodation_name: 1 }).select('accomodation_name price route_name').lean(),
+      Accommodation.find({}).sort({ accomodation_name: 1 }).select('accomodation_name place isLuxury').lean(),
     ]);
     res.render('itineraries/new-step1', {
       title: 'New Itinerary • Step 1',
@@ -76,17 +76,21 @@ router.get('/itineraries/new', ensureAuth, async (req, res, next) => {
 // Step 2: choose accommodations for selected routes
 router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) => {
   try {
-    const { title, startDate, adults, children, inclusionsText, exclusionsText, profitPercent } = req.body;
+    const { title, clientName, startDate, adults, children, inclusionsText, exclusionsText, profitPercent } = req.body;
     // Arrays from dynamic rows
     const dayArr = Array.isArray(req.body.day) ? req.body.day : [req.body.day].filter(Boolean);
     const routeIdArr = Array.isArray(req.body.routeId) ? req.body.routeId : [req.body.routeId].filter(Boolean);
     const accomodationIdArr = Array.isArray(req.body.accomodationId) ? req.body.accomodationId : [req.body.accomodationId].filter(Boolean);
+    const adultPriceArr = Array.isArray(req.body.adult_price) ? req.body.adult_price : [req.body.adult_price].filter(Boolean);
+    const childPriceArr = Array.isArray(req.body.child_price) ? req.body.child_price : [req.body.child_price].filter(Boolean);
 
     const rows = dayArr
       .map((d, i) => ({
         day: Number(d || i + 1),
         routeId: (routeIdArr[i] || '').trim(),
         accomodationId: (accomodationIdArr[i] || '').trim(),
+        adult_price: Number(adultPriceArr[i] || 0),
+        child_price: Number(childPriceArr[i] || 0),
       }))
       .filter(r => r.routeId);
 
@@ -112,6 +116,8 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
         routeDoc: routeById.get(r.routeId),
         accomodationDoc: r.accomodationId ? accById.get(r.accomodationId) : null,
         accomodationId: r.accomodationId || '',
+        adult_price: Number(r.adult_price || 0),
+        child_price: Number(r.child_price || 0),
       }))
       .filter(x => x.routeDoc)
       .sort((a, b) => a.day - b.day);
@@ -126,8 +132,8 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
       routeId: x.routeDoc._id,
       accomodation: {
         name: x.accomodationDoc ? x.accomodationDoc.accomodation_name : 'N/A',
-        price: x.accomodationDoc ? Number(x.accomodationDoc.price || 0) : 0,
-        concession_fee: x.accomodationDoc ? Number(x.accomodationDoc.concession_fee || 0) : 0,
+        adult_price: x.adult_price,
+        child_price: x.child_price,
       }
     }));
     const pax = { adults: Number(adults || 0), children: Number(children || 0) };
@@ -148,6 +154,7 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
       keywords: 'itinerary, review, totals',
       page: 'itineraries',
       titleDraft: title,
+      clientNameDraft: clientName,
       startDateDraft: startDate,
       pax,
       inclusionsList,
@@ -165,9 +172,9 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
         const parkTotal = (typeof x.routeDoc.park_fee_adult !== 'undefined' || typeof x.routeDoc.park_fee_child !== 'undefined')
           ? (parkAdult + parkChild)
           : Number(x.routeDoc.park_fee || 0);
-        const accomodationBase = x.accomodationDoc ? Number(x.accomodationDoc.price || 0) : 0;
-        const concessionFee = x.accomodationDoc ? Number(x.accomodationDoc.concession_fee || 0) : 0;
-        const accomodationTotal = accomodationBase + concessionFee;
+        const adultUnit = Number(x.adult_price || 0);
+        const childUnit = Number(x.child_price || 0);
+        const accomodationTotal = (adultUnit * Number(pax.adults || 0)) + (childUnit * Number(pax.children || 0));
         return {
           index: idx + 1,
           day: x.day,
@@ -182,8 +189,8 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
             parkChildren: Number(x.routeDoc.park_fee_child || 0),
             parkTotal,
             accomodation: accomodationTotal,
-            concession: concessionFee,
-            accomodationBase,
+            adultUnit,
+            childUnit,
           }
         };
       }),
@@ -195,14 +202,18 @@ router.post('/itineraries/new/choose-acc', ensureAuth, async (req, res, next) =>
 // Create itinerary
 router.post('/itineraries', ensureAuth, async (req, res, next) => {
   try {
-    const { title, startDate, adults, children, routeId, accomodationId, inclusionsText, exclusionsText, profitPercent } = req.body;
+    const { title, clientName, startDate, adults, children, routeId, accomodationId, adult_price, child_price, inclusionsText, exclusionsText, profitPercent } = req.body;
     if (!title) { req.flash('error', 'Title is required.'); return res.redirect('/dashboard/itineraries/new'); }
     const routeIdsRaw = Array.isArray(routeId) ? routeId : [routeId];
     const accomodationIdsRaw = Array.isArray(accomodationId) ? accomodationId : [accomodationId];
+    const adultPriceRaw = Array.isArray(adult_price) ? adult_price : [adult_price];
+    const childPriceRaw = Array.isArray(child_price) ? child_price : [child_price];
     const dayInputs = routeIdsRaw
       .map((id, idx) => ({
         routeId: (id || '').trim(),
         accomodationId: (accomodationIdsRaw[idx] || '').trim(),
+        adult_price: Number(adultPriceRaw[idx] || 0),
+        child_price: Number(childPriceRaw[idx] || 0),
       }))
       .filter(d => d.routeId);
 
@@ -225,8 +236,8 @@ router.post('/itineraries', ensureAuth, async (req, res, next) => {
         routeId: d.routeId,
         accomodation: {
           name: accDoc ? accDoc.accomodation_name : 'N/A',
-          price: accDoc ? Number(accDoc.price || 0) : 0,
-          concession_fee: accDoc ? Number(accDoc.concession_fee || 0) : 0,
+          adult_price: Number(d.adult_price || 0),
+          child_price: Number(d.child_price || 0),
         }
       };
     });
@@ -240,6 +251,7 @@ router.post('/itineraries', ensureAuth, async (req, res, next) => {
 
     const doc = await Itinerary.create({
       title: title.trim(),
+      clientName: (clientName || '').trim() || undefined,
       startDate: startDate ? new Date(startDate) : null,
       pax,
       days: days.map(d => ({ route: d.routeId, accomodation: d.accomodation })),
@@ -276,6 +288,8 @@ router.get('/itineraries/:id/edit', ensureAuth, async (req, res, next) => {
         accomodationId,
         accomodationName,
         accomodationMissing: Boolean(accomodationName && !accomodationId),
+        adult_price: Number(day?.accomodation?.adult_price || 0),
+        child_price: Number(day?.accomodation?.child_price || 0),
       };
     });
     if (!formDays.length) {
@@ -314,7 +328,7 @@ router.post('/itineraries/:id/edit', ensureAuth, async (req, res, next) => {
       return res.redirect('/dashboard/itineraries');
     }
 
-    const { title, startDate, adults, children, inclusionsText, exclusionsText, profitPercent } = req.body;
+    const { title, clientName, startDate, adults, children, inclusionsText, exclusionsText, profitPercent } = req.body;
     if (!title || !title.trim()) {
       req.flash('error', 'Title is required.');
       return res.redirect(redirectBack);
@@ -327,12 +341,16 @@ router.post('/itineraries/:id/edit', ensureAuth, async (req, res, next) => {
     const dayArr = toArray(req.body.day);
     const routeIdArr = toArray(req.body.routeId);
     const accomodationIdArr = toArray(req.body.accomodationId);
+    const adultPriceArr = toArray(req.body.adult_price);
+    const childPriceArr = toArray(req.body.child_price);
 
     const rows = dayArr
       .map((d, i) => ({
         day: Number(d || i + 1),
         routeId: (routeIdArr[i] || '').trim(),
         accomodationId: (accomodationIdArr[i] || '').trim(),
+        adult_price: Number(adultPriceArr[i] || 0),
+        child_price: Number(childPriceArr[i] || 0),
       }))
       .filter(r => r.routeId);
 
@@ -363,6 +381,8 @@ router.post('/itineraries/:id/edit', ensureAuth, async (req, res, next) => {
         routeDoc: routeById.get(r.routeId),
         accomodationDoc: r.accomodationId ? accById.get(r.accomodationId) : null,
         accomodationId: r.accomodationId,
+        adult_price: Number(r.adult_price || 0),
+        child_price: Number(r.child_price || 0),
       }))
       .filter(x => x.routeDoc)
       .sort((a, b) => a.day - b.day);
@@ -377,8 +397,8 @@ router.post('/itineraries/:id/edit', ensureAuth, async (req, res, next) => {
       routeId: x.routeDoc._id,
       accomodation: {
         name: x.accomodationDoc ? x.accomodationDoc.accomodation_name : (x.accomodationId ? 'Not found' : 'N/A'),
-        price: x.accomodationDoc ? Number(x.accomodationDoc.price || 0) : 0,
-        concession_fee: x.accomodationDoc ? Number(x.accomodationDoc.concession_fee || 0) : 0,
+        adult_price: Number(x.adult_price || 0),
+        child_price: Number(x.child_price || 0),
       }
     }));
     const { totals } = computeItineraryTotals(daysNorm.map(x => x.routeDoc), daysForCalc, pax);
@@ -392,6 +412,7 @@ router.post('/itineraries/:id/edit', ensureAuth, async (req, res, next) => {
       {
         $set: {
           title: title.trim(),
+          clientName: (clientName || '').trim() || undefined,
           startDate: startDate ? new Date(startDate) : null,
           pax,
           days: daysForCalc.map(d => ({ route: d.routeId, accomodation: d.accomodation })),
@@ -448,6 +469,7 @@ router.get('/itineraries/:id/print', ensureAuth, async (req, res, next) => {
       index: idx + 1,
       title: day.route.name,
       description: day.route.description,
+      image: day.route.image || '',
       accommodation: day.accomodation?.name || 'N/A',
     }));
 

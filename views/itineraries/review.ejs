@@ -43,10 +43,8 @@
               <td>
                 <div><%= d.accomodationName || 'N/A' %></div>
                 <div class="small text-muted">
-                  Base: USD <%= Number(fees.accomodationBase||0).toLocaleString('en-US') %>
-                  <% if (Number(fees.concession||0)) { %>
-                    <span class="d-block">Concession: USD <%= Number(fees.concession).toLocaleString('en-US') %></span>
-                  <% } %>
+                  Unit (Adult): USD <%= Number(fees.adultUnit||0).toLocaleString('en-US') %>
+                  <span class="d-block">Unit (Child): USD <%= Number(fees.childUnit||0).toLocaleString('en-US') %></span>
                   <span class="d-block fw-semibold">Subtotal: USD <%= Number(fees.accomodation||0).toLocaleString('en-US') %></span>
                 </div>
               </td>
@@ -97,12 +95,15 @@
 
   <form action="/dashboard/itineraries" method="post" class="mt-3">
     <input type="hidden" name="title" value="<%= titleDraft %>">
+    <input type="hidden" name="clientName" value="<%= clientNameDraft || '' %>">
     <input type="hidden" name="startDate" value="<%= startDateDraft %>">
     <input type="hidden" name="adults" value="<%= pax.adults %>">
     <input type="hidden" name="children" value="<%= pax.children %>">
     <% (days || []).forEach(function(d){ %>
       <input type="hidden" name="routeId" value="<%= d.route._id %>">
       <input type="hidden" name="accomodationId" value="<%= d.accomodationId || '' %>">
+      <input type="hidden" name="adult_price" value="<%= Number(d.fees.adultUnit || 0) %>">
+      <input type="hidden" name="child_price" value="<%= Number(d.fees.childUnit || 0) %>">
     <% }) %>
     <textarea name="inclusionsText" class="d-none"><%= inclusionsText || '' %></textarea>
     <textarea name="exclusionsText" class="d-none"><%= exclusionsText || '' %></textarea>

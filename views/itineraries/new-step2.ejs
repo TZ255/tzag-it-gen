@@ -2,6 +2,7 @@
   <h1 class="h5 mb-3">New Itinerary • Step 2</h1>
   <form action="/dashboard/itineraries" method="post" class="sb-form">
     <input type="hidden" name="title" value="<%= titleDraft %>">
+    <input type="hidden" name="clientName" value="<%= clientNameDraft || '' %>">
     <input type="hidden" name="startDate" value="<%= startDateDraft %>">
     <input type="hidden" name="adults" value="<%= adultsDraft %>">
     <input type="hidden" name="children" value="<%= childrenDraft %>">
@@ -32,8 +33,15 @@
                     <% } %>
                   </select>
                 </td>
-                <td style="max-width: 140px;">
-                  <input type="number" name="accomodationPrice" class="form-control form-control-sm" min="0" step="1" value="<%= (r.accomodation && r.accomodation.price) || 0 %>">
+                <td style="max-width: 220px;">
+                  <div class="row g-1">
+                    <div class="col-6">
+                      <input type="number" name="adult_price" class="form-control form-control-sm" min="0" step="1" placeholder="Adult USD" value="<%= (r.accomodation && r.accomodation.adult_price) || 0 %>">
+                    </div>
+                    <div class="col-6">
+                      <input type="number" name="child_price" class="form-control form-control-sm" min="0" step="1" placeholder="Child USD" value="<%= (r.accomodation && r.accomodation.child_price) || 0 %>">
+                    </div>
+                  </div>
                 </td>
               </tr>
             <% }) %>
@@ -47,4 +55,3 @@
     </div>
   </form>
 </section>
-

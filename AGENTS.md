@@ -2,7 +2,7 @@
 
 Implementation guide for the Tanzania Adventures Group Itinery Generating System. This replaces legacy SMM panel language and aligns routes, models, UI, and practices to the itinerary use-case.
 
-Last Synced: 2025-11-12T20:00:00Z
+Last Synced: 2025-11-16T16:00:00Z
 
 ## Change Discipline
 - Always update both `AGENTS.md` and `/LOGS/UPDATES.log` for every change.
@@ -73,6 +73,7 @@ Route
   - description: String, required
   - day: Number (>=1)
   - origin: String, destination: String (optional)
+  - image: String (URL)
   - vehicle_fee: Number
   - park_fee_adult: Number
   - park_fee_child: Number
@@ -82,11 +83,21 @@ Route
 Accommodation
 - fields:
   - accomodation_name: String, required
-  - route_name: String, required
-  - price: Number
-  - isConserved: Boolean
-  - concession_fee: Number
+  - place: String, required
+  - isLuxury: Boolean
   - createdAt, updatedAt: Date
+
+
+Itinerary
+- fields:
+  - title: String, required
+  - clientName: String (optional)
+  - startDate: Date
+  - pax: { adults: Number, children: Number }
+  - days[]: { route: ObjectId(ref Route), accomodation: { name: String, adult_price: Number, child_price: Number } }
+  - totals: { accomodation, vehicle, park, transit, grand }
+  - inclusions[], exclusions[]
+  - profit: { percent, amount }
 
 
 ## Routes & Views
@@ -148,6 +159,7 @@ Auth via HTMX
 - Keep `title` and `description` in clear English. `keywords` as a comma-separated English list.
 - Layout must output `<title>`, `<meta name="description">`, `<meta name="keywords">`. Optionally include Open Graph tags.
 - Root redirects to login, so no landing page metadata is needed.
+ - Print preview includes a company footer with phone, email, and address, and hides the print button during printing.
 
 ## Nav Activeness
 - Determine active links using `page`. Sidebar highlights:
@@ -205,6 +217,7 @@ Responsive Rules
 - Mobile-first. Breakpoints: use Bootstrap (`sm=576`, `md=768`, `lg=992`).
 - On small screens: single-column cards; table overflow with `.table-responsive`.
 - Avoid hidden content; collapse secondary actions into dropdowns on mobile.
+ - Itinerary builder/edit day rows: compact grid fits one row at `lg` (Route 4, Accommodation 3, Adult 2, Child 1, Day 1, Actions 1) with `form-control-sm`/`form-select-sm` to reduce visual width.
 
 Accessibility
 - Ensure 4.5:1 contrast for text; do not lower contrast of `--sb-text` on `--sb-bg`.
@@ -285,10 +298,10 @@ Design Acceptance
 - Accommodation selectors display price hints and concession fees are now included in accommodation totals system-wide. The review step now itemizes base vs. concession amounts so admins can verify the totals (client grand total includes profit).
 
 ## Itinerary Generation — Way Forward
-- Source of truth: `Route` (per-day legs, fees, pax counts) + `Accomodation` (by `route_name`).
-- Compose itineraries by querying ordered `Route` items for a trip plan and aggregating fees: vehicle, park, transit, and accommodation per day using `accomodation.name/price` override where set.
-- Introduce `Itinerary` document referencing ordered `Route` ids and per-day accommodation overrides. Store computed totals and a rendered summary.
-- Builder: pick start date, choose days (routes), select accommodation per day, review costs, then export/print.
+- Source of truth: `Route` (per-day legs, fees, pax counts) + `Accommodation` catalog (name/place/luxury only).
+- Compose itineraries by selecting ordered `Route` items and per-day `Accommodation` name, with per-day unit prices entered in the builder (`adult_price`, `child_price`).
+- `Itinerary` stores client name, pax counts, days with `{ route, accomodation: { name, adult_price, child_price } }`, and computed totals.
+- Builder: enter title and client name, pick start date, add days (route + accommodation), input adult/child unit prices, review totals (accommodation computed as `adult_price*adults + child_price*children`), then save and print.
 - Keep responses small and fragment-based (dashboard → itinerary builder fragments) while maintaining non-JS form fallbacks.
 
 ## Acceptance Criteria

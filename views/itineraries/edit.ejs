@@ -22,6 +22,10 @@
         <label class="form-label" for="title">Title</label>
         <input id="title" name="title" class="form-control" value="<%= it.title %>" required>
       </div>
+      <div class="col-md-4">
+        <label class="form-label" for="clientName">Client Name</label>
+        <input id="clientName" name="clientName" class="form-control" value="<%= it.clientName || '' %>">
+      </div>
       <div class="col-md-3">
         <label class="form-label" for="startDate">Start Date</label>
         <input id="startDate" name="startDate" type="date" class="form-control" value="<%= it.startDate ? new Date(it.startDate).toISOString().slice(0,10) : '' %>">
@@ -45,33 +49,41 @@
         <div id="days-list" class="d-flex flex-column gap-2">
           <% (formDays || []).forEach(function(day, idx){ %>
             <div class="row g-2 align-items-end it-day-row" data-row="<%= idx + 1 %>">
-              <div class="col-12 col-md-2">
+              <div class="col-6 col-md-2 col-lg-1">
                 <label class="form-label" for="day-<%= idx + 1 %>">Day</label>
-                <input id="day-<%= idx + 1 %>" name="day" type="number" class="form-control" value="<%= day.dayValue %>" min="1">
+                <input id="day-<%= idx + 1 %>" name="day" type="number" class="form-control form-control-sm" value="<%= day.dayValue %>" min="1">
               </div>
-              <div class="col-12 col-md-5">
+              <div class="col-12 col-md-5 col-lg-4">
                 <label class="form-label" for="routeId-<%= idx + 1 %>">Route</label>
-                <select id="routeId-<%= idx + 1 %>" name="routeId" class="form-select" required>
+                <select id="routeId-<%= idx + 1 %>" name="routeId" class="form-select form-select-sm" required>
                   <option value="">Select route</option>
                   <% (routes || []).forEach(function(r){ const selected = day.routeId === String(r._id); %>
                     <option value="<%= r._id %>" <%= selected ? 'selected' : '' %>><%= r.name %></option>
                   <% }) %>
                 </select>
               </div>
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-md-5 col-lg-3">
                 <label class="form-label" for="accomodationId-<%= idx + 1 %>">Accommodation</label>
-                <select id="accomodationId-<%= idx + 1 %>" name="accomodationId" class="form-select">
+                <select id="accomodationId-<%= idx + 1 %>" name="accomodationId" class="form-select form-select-sm">
                   <option value="">Optional — choose accommodation</option>
                   <% (accomodations || []).forEach(function(a){ const selected = day.accomodationId === String(a._id); %>
-                    <option value="<%= a._id %>" <%= selected ? 'selected' : '' %>><%= a.accomodation_name %> (USD <%= Number(a.price || 0).toLocaleString('en-US') %>)</option>
+                    <option value="<%= a._id %>" <%= selected ? 'selected' : '' %>><%= a.accomodation_name %> — <%= a.place %> <%= a.isLuxury ? '(Luxury)' : '' %></option>
                   <% }) %>
                 </select>
                 <% if (day.accomodationMissing) { %>
                   <div class="form-text text-danger">Previously: <%= day.accomodationName %> (no longer available)</div>
                 <% } %>
               </div>
-              <div class="col-12 col-md-1 text-md-end">
-                <button type="button" class="btn btn-outline-danger mt-2 mt-md-0" data-remove-row><i class="fa-solid fa-trash"></i></button>
+              <div class="col-6 col-md-2 col-lg-2">
+                <label class="form-label" for="adult_price-<%= idx + 1 %>">Adult USD</label>
+                <input id="adult_price-<%= idx + 1 %>" name="adult_price" type="number" class="form-control form-control-sm" value="<%= day.adult_price %>" min="0" step="1">
+              </div>
+              <div class="col-6 col-md-2 col-lg-1">
+                <label class="form-label" for="child_price-<%= idx + 1 %>">Child USD</label>
+                <input id="child_price-<%= idx + 1 %>" name="child_price" type="number" class="form-control form-control-sm" value="<%= day.child_price %>" min="0" step="1">
+              </div>
+              <div class="col-12 col-md-1 col-lg-1 text-md-end text-lg-end">
+                <button type="button" class="btn btn-outline-danger btn-sm mt-2 mt-md-0" data-remove-row><i class="fa-solid fa-trash"></i></button>
               </div>
             </div>
           <% }) %>
@@ -138,6 +150,20 @@
         var accLabel = clone.querySelector('label[for^="accomodationId-"]');
         if (accLabel) accLabel.setAttribute('for', 'accomodationId-' + count);
       }
+      var aInput = clone.querySelector('[name="adult_price"]');
+      if (aInput) {
+        aInput.value = '0';
+        aInput.id = 'adult_price-' + count;
+        var aLabel = clone.querySelector('label[for^="adult_price-"]');
+        if (aLabel) aLabel.setAttribute('for', 'adult_price-' + count);
+      }
+      var cInput = clone.querySelector('[name="child_price"]');
+      if (cInput) {
+        cInput.value = '0';
+        cInput.id = 'child_price-' + count;
+        var cLabel = clone.querySelector('label[for^="child_price-"]');
+        if (cLabel) cLabel.setAttribute('for', 'child_price-' + count);
+      }
       var warnings = clone.querySelectorAll('.text-danger');
       warnings.forEach(function(el){ el.remove(); });
       list.appendChild(clone);
@@ -158,6 +184,10 @@
         if (routeSelect) routeSelect.value = '';
         var acc = row.querySelector('[name="accomodationId"]');
         if (acc) acc.value = '';
+        var aInput = row.querySelector('[name="adult_price"]');
+        if (aInput) aInput.value = '0';
+        var cInput = row.querySelector('[name="child_price"]');
+        if (cInput) cInput.value = '0';
       }
     });
   })();

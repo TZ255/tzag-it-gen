@@ -7,6 +7,7 @@ const routeSchema = new mongoose.Schema(
     day: { type: Number, default: 1 },
     origin: { type: String, trim: true },
     destination: { type: String, trim: true },
+    image: { type: String, trim: true },
     vehicle_fee: { type: Number, default: 200 },
     park_fee_adult: { type: Number, default: 0 },
     park_fee_child: { type: Number, default: 0 },
