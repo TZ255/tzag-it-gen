@@ -74,6 +74,11 @@
     </div>
 
     <section class="section">
+      <h2>Trip Overview</h2>
+      <p><%= it.overview || 'A tailored safari experience crafted for your travel dates, with comfortable stays and a balanced pace across the selected routes.' %></p>
+    </section>
+
+    <section class="section">
       <h2>Day-By-Day Journey</h2>
       <% formattedDays.forEach(function(day){ %>
         <article class="day-card">

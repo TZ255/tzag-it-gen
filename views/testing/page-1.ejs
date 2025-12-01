@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6-Day Machame Route • Testing Preview</title>
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --accent-2: #f59e0b;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --radius: 14px;
+      --shadow: 0 14px 38px rgba(15, 23, 42, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.08), transparent 35%),
+                  radial-gradient(circle at 90% 10%, rgba(245, 158, 11, 0.12), transparent 30%),
+                  var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      padding: 32px 18px 48px;
+    }
+    .shell {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    header {
+      background: linear-gradient(120deg, rgba(37, 99, 235, 0.12), rgba(37, 99, 235, 0));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    }
+    header .brand {
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      font-size: 18px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    header .pill {
+      background: rgba(37, 99, 235, 0.12);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .hero {
+      margin: 28px 0;
+      padding: 28px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(15, 23, 42, 0.04));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 18px;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 36px);
+      line-height: 1.2;
+    }
+    .hero p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      max-width: 720px;
+    }
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      margin: 26px 0;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .card h3 {
+      margin: 0;
+      font-size: 17px;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight: 600;
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--accent);
+      border: 1px solid rgba(37, 99, 235, 0.14);
+    }
+    .badge.alt {
+      background: rgba(245, 158, 11, 0.1);
+      color: #b45309;
+      border-color: rgba(245, 158, 11, 0.2);
+    }
+    .image-card {
+      position: relative;
+      min-height: 180px;
+      overflow: hidden;
+      border-radius: calc(var(--radius) - 2px);
+    }
+    .image-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: saturate(1.05);
+      transition: transform 0.3s ease;
+    }
+    .image-card:hover img { transform: scale(1.03); }
+    .image-caption {
+      position: absolute;
+      inset: auto 12px 12px 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.72);
+      color: #e2e8f0;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.35);
+    }
+    .list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 12px;
+    }
+    .list li {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.03);
+      border: 1px solid var(--border);
+    }
+    .faq {
+      display: grid;
+      gap: 12px;
+    }
+    .faq-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--card);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .faq-question {
+      padding: 14px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .faq-answer {
+      padding: 0 16px 14px;
+      color: var(--muted);
+      display: none;
+    }
+    .faq-item.active .faq-answer { display: block; }
+    .faq-item.active .faq-question { color: var(--accent); }
+    footer {
+      margin-top: 32px;
+      padding: 18px;
+      border-radius: var(--radius);
+      background: #0f172a;
+      color: #e2e8f0;
+      display: grid;
+      gap: 6px;
+      font-size: 14px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.4);
+    }
+    @media (max-width: 640px) {
+      header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      body { padding: 20px 14px 40px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <span>🚩 Tanzania Adventures Group</span>
+        <span class="pill">Testing Preview</span>
+      </div>
+      <div class="pill">Route: Machame • 6 Days</div>
+    </header>
+
+    <section class="hero">
+      <h1>6-Day Machame Route — Kilimanjaro Climb Overview</h1>
+      <p>
+        A fast but scenic ascent through rainforest, moorland, and alpine desert to Uhuru Peak.
+        Ideal for acclimatized trekkers who want a focused, summit-driven itinerary with dramatic views of the Shira Plateau and Lava Tower.
+      </p>
+      <div class="meta">
+        <span class="badge">Summit push: Midnight</span>
+        <span class="badge alt">Best season: Jan–Mar & Jun–Oct</span>
+        <span class="badge">Difficulty: Challenging</span>
+      </div>
+    </section>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Itinerary Snapshot</h3>
+        <ul class="list">
+          <li><strong>Day 1:</strong> Machame Gate (1,800m) → Machame Camp (3,000m) through lush rainforest.</li>
+          <li><strong>Day 2:</strong> Steady climb to Shira Cave Camp (3,840m) with views of Shira Cathedral.</li>
+          <li><strong>Day 3:</strong> Acclimatization via Lava Tower (4,600m), descend to Barranco Camp (3,950m).</li>
+          <li><strong>Day 4:</strong> Barranco Wall scramble, traverse Karanga Valley to Karanga Camp (3,995m).</li>
+          <li><strong>Day 5:</strong> Push to Barafu Camp (4,673m); early dinner, rest, and summit briefing.</li>
+          <li><strong>Day 6:</strong> Midnight ascent to Uhuru Peak (5,895m); descend via Mweka route.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>What This Route Delivers</h3>
+        <ul class="list">
+          <li>Balanced acclimatization with a high trek to Lava Tower and sleep-low strategy.</li>
+          <li>Signature views of Kibo’s southern glaciers and the Shira Plateau ridgelines.</li>
+          <li>Iconic Barranco Wall climb that feels adventurous yet achievable.</li>
+          <li>Lean 6-day schedule for teams comfortable with longer summit and descent days.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="image-card">
+          <img src="https://images.unsplash.com/photo-1518684079-3c830dcef090?auto=format&fit=crop&w=1400&q=80" alt="Kilimanjaro glaciers at sunrise" loading="lazy" />
+          <div class="image-caption">Glacier light near Stella Point</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="image-card">
+          <img src="https://images.unsplash.com/photo-1498075702571-ecb018f3752d?auto=format&fit=crop&w=1400&q=80" alt="Machame rainforest trail" loading="lazy" />
+          <div class="image-caption">Rainforest start at Machame Gate</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Summit Day Flow</h3>
+        <ul class="list">
+          <li><strong>00:00:</strong> Depart Barafu; zig-zag switchbacks toward Stella Point.</li>
+          <li><strong>Sunrise:</strong> Reach Stella Point (5,756m); traverse crater rim to Uhuru Peak.</li>
+          <li><strong>Descent:</strong> Return to Barafu for brunch, then drop to Mweka Camp to recover.</li>
+          <li><strong>Pace:</strong> Slow, steady, with hydration checks every 45–60 minutes.</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="card">
+      <h3>FAQs — 6-Day Machame Route</h3>
+      <div class="faq" id="faq">
+        <div class="faq-item">
+          <div class="faq-question">How tough is the 6-day schedule?<span>＋</span></div>
+          <div class="faq-answer">It is demanding. Daily gains are moderate until summit day, which combines a long ascent and descent. Prior high-altitude hiking helps.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">Is acclimatization enough?<span>＋</span></div>
+          <div class="faq-answer">The Lava Tower hike (4,600m) followed by a sleep-low at Barranco provides a solid acclimatization window for most trekkers.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">When is the best time to climb?<span>＋</span></div>
+          <div class="faq-answer">Dry seasons (Jan–Mar and Jun–Oct) offer clearer skies and steadier footing, improving summit odds and comfort.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">What gear is essential?<span>＋</span></div>
+          <div class="faq-answer">4-season layers, insulated gloves, headlamp with spare batteries, 2–3L hydration, gaiters, and broken-in boots. Poles strongly recommended.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">Are there huts on Machame?<span>＋</span></div>
+          <div class="faq-answer">No huts. All nights are in tents set up by the crew. Camps have designated toilet areas; private chemical toilets are optional add-ons.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">What support is included?<span>＋</span></div>
+          <div class="faq-answer">Professional mountain guides, cook, porters, tents, and meals on the mountain. Summit safety briefings and twice-daily health checks are standard.</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div><strong>Tanzania Adventures Group</strong> — Independent testing preview page</div>
+      <div>Contact: +255 622 777 111 • hello@tanzania-adv.group</div>
+      <div>Route focus: Machame (Whiskey Route) • 6 Days, summit-first mindset</div>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      const faq = document.getElementById('faq');
+      if (!faq) return;
+      faq.addEventListener('click', (e) => {
+        const item = e.target.closest('.faq-item');
+        if (!item) return;
+        item.classList.toggle('active');
+      });
+    }());
+  </script>
+</body>
+</html>

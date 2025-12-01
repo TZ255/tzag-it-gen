@@ -42,7 +42,7 @@
                 <% routes.forEach(function(r){ %>
                   <tr>
                     <td><%= r.name %></td>
-                    <td class="small"><%= r.description %></td>
+                    <td class="small"><%= r.description?.substring(0, 100) %></td>
                     <td><%= r.day %></td>
                     <td class="align-top w-25">
                       <div>Vehicle: USD <%= Number(r.vehicle_fee || 0).toLocaleString('en-US') %></div>

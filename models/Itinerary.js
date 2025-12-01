@@ -17,6 +17,7 @@ const itinerarySchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true },
     clientName: { type: String, trim: true },
     startDate: { type: Date },
+    overview: { type: String, trim: true },
     pax: {
       adults: { type: Number, default: 2 },
       children: { type: Number, default: 0 },

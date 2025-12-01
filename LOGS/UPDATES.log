@@ -46,3 +46,10 @@
 2025-11-16T16:00:00Z | AI | Added company contact footer (phone, email, address) to the print view and removed the optimization notice; updated AGENTS.md and docs.
 2025-11-16T16:06:00Z | AI | Improved print pagination: added @page margins and page-break-avoid rules for day cards/sections to prevent content being cut between pages.
 2025-11-16T16:12:00Z | AI | Fixed itinerary edit saving of accommodation unit prices: carried adult_price/child_price through server normalization so totals and persisted values update correctly.
+2025-11-16T16:30:00Z | AI | Added standalone testing preview at /testing/page-1 with inline CSS/JS Machame 6-day overview + FAQs; mounted testing router and documented in AGENTS.md.
+2025-11-16T17:00:00Z | AI | Integrated AI-generated itinerary overviews (OpenAI util), added overview field to model, auto-generate on create/edit when missing, and render overview on print view; updated AGENTS.md.
+2025-11-16T17:10:00Z | AI | Switched overview generation to the OpenAI Node SDK (chat completions) while keeping fallback behavior; updated docs.
+2025-11-16T17:18:00Z | AI | Updated AI overview generation to use the OpenAI Responses API (output_text) with same fallback behavior; docs adjusted.
+2025-11-16T17:24:00Z | AI | Expanded itinerary overview to <=200 words and prompt now includes route descriptions plus accommodation context; updated docs.
+2025-11-16T17:40:00Z | AI | Added submit-button disable + spinner on itinerary review page to prevent duplicate creation; documented in AGENTS.md.
+2025-11-16T17:55:00Z | AI | Replaced route/accommodation selects on itinerary Step 1 with searchable popovers that filter on type and set hidden IDs; documented in AGENTS.md.

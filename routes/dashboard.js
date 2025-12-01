@@ -4,6 +4,7 @@ const RouteModel = require('../models/Route');
 const Accommodation = require('../models/Accommodation');
 const Itinerary = require('../models/Itinerary');
 const { computeItineraryTotals } = require('../utils/calc');
+const { generateItineraryOverview } = require('../utils/ai');
 
 const router = express.Router();
 
@@ -228,6 +229,7 @@ router.post('/itineraries', ensureAuth, async (req, res, next) => {
       RouteModel.find({ _id: { $in: routeIds } }).lean(),
       Accommodation.find({ _id: { $in: accIds } }).lean(),
     ]);
+    const routeById = new Map(routes.map(r => [String(r._id), r]));
     const accById = new Map(accommodations.map(a => [String(a._id), a]));
 
     const days = dayInputs.map(d => {
@@ -248,6 +250,15 @@ router.post('/itineraries', ensureAuth, async (req, res, next) => {
     const exclusionsList = textAreaToList(exclusionsText);
     const profitPct = normalizePercent(profitPercent || 0);
     const profitAmount = Number(totals.grand || 0) * (profitPct / 100);
+    const overview = await generateItineraryOverview({
+      title,
+      clientName,
+      pax,
+      days: days.map(d => ({
+        route: routeById.get(d.routeId) || { name: 'TBD', description: '' },
+        accomodation: d.accomodation
+      }))
+    });
 
     const doc = await Itinerary.create({
       title: title.trim(),
@@ -259,6 +270,7 @@ router.post('/itineraries', ensureAuth, async (req, res, next) => {
       inclusions: inclusionsList,
       exclusions: exclusionsList,
       profit: { percent: profitPct, amount: profitAmount },
+      overview,
     });
     return res.redirect(`/dashboard/itineraries/${doc._id}`);
   } catch (err) { next(err); }
@@ -406,6 +418,18 @@ router.post('/itineraries/:id/edit', ensureAuth, async (req, res, next) => {
     const exclusionsList = textAreaToList(exclusionsText);
     const profitPct = normalizePercent(profitPercent || 0);
     const profitAmount = Number(totals.grand || 0) * (profitPct / 100);
+    let overview = itDoc.overview;
+    if (!overview || !overview.trim()) {
+      overview = await generateItineraryOverview({
+        title,
+        clientName,
+        pax,
+        days: daysNorm.map(d => ({
+          route: d.routeDoc,
+          accomodation: d.accomodation,
+        })),
+      });
+    }
 
     await Itinerary.updateOne(
       { _id: itineraryId },
@@ -420,6 +444,7 @@ router.post('/itineraries/:id/edit', ensureAuth, async (req, res, next) => {
           inclusions: inclusionsList,
           exclusions: exclusionsList,
           profit: { percent: profitPct, amount: profitAmount },
+          overview,
         }
       }
     );

@@ -24,6 +24,8 @@ Last Synced: 2025-11-16T16:00:00Z
   - `SESSION_SECRET=<strong-random-string>`
   - `SESSION_NAME=sb.sid`
   - `BASE_URL=http://localhost:3000`
+  - `OPENAI_API_KEY=<key>` (required for AI-generated itinerary overviews)
+  - `OPENAI_MODEL=gpt-4o-mini` (optional override)
 - Scripts (recommended in `package.json`):
   - `dev`: `nodemon index.js`
   - `start`: `node index.js`
@@ -93,6 +95,7 @@ Itinerary
   - title: String, required
   - clientName: String (optional)
   - startDate: Date
+  - overview: String (short AI-generated summary)
   - pax: { adults: Number, children: Number }
   - days[]: { route: ObjectId(ref Route), accomodation: { name: String, adult_price: Number, child_price: Number } }
   - totals: { accomodation, vehicle, park, transit, grand }
@@ -108,11 +111,15 @@ Conventions
 
 Public
 - `GET /` → redirect to `/auth/login` (no landing page).
+- `GET /testing/page-1` → layout-free showcase page with inline CSS/JS for a 6-day Machame Route overview and FAQs (testing preview only).
 
 Auth
 - `GET /auth/login` → login form (HTMX-enhanced + non-JS fallback with submit button).
 - `POST /auth/login` → authenticate (Passport local, plain password compare). On success: HTMX responds with `HX-Redirect: /dashboard`, non-HTMX redirects to `/dashboard`. On failure: HTMX returns `fragments/auth-message`, non-HTMX flashes error and redirects back.
 - `POST /auth/logout` → destroy session; redirect `/`.
+
+AI Overview (Itineraries)
+- `utils/ai.js` exposes `generateItineraryOverview(payload)` using the OpenAI Node SDK Responses API (<=200 words, model defaults to gpt-4o-mini). Called during itinerary create and on edit when missing; falls back to a templated summary if OpenAI is unavailable. Requires `OPENAI_API_KEY`.
  
 
 Dashboard (guarded)
@@ -302,6 +309,8 @@ Design Acceptance
 - Compose itineraries by selecting ordered `Route` items and per-day `Accommodation` name, with per-day unit prices entered in the builder (`adult_price`, `child_price`).
 - `Itinerary` stores client name, pax counts, days with `{ route, accomodation: { name, adult_price, child_price } }`, and computed totals.
 - Builder: enter title and client name, pick start date, add days (route + accommodation), input adult/child unit prices, review totals (accommodation computed as `adult_price*adults + child_price*children`), then save and print.
+- Step 1 route/accommodation pickers use searchable popovers (type to filter, click to select); selections set hidden IDs for server processing.
+- Review step submit button disables and shows a spinner while creating the itinerary to avoid duplicate submissions.
 - Keep responses small and fragment-based (dashboard → itinerary builder fragments) while maintaining non-JS form fallbacks.
 
 ## Acceptance Criteria
